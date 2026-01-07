@@ -1,0 +1,8 @@
+GameProject {
+ ID "GCSuppression"
+ GUID "684CE8AA3B1D6573"
+ TITLE "GC Suppression"
+ Dependencies {
+  "58D0FB3206B6F859"
+ }
+}
