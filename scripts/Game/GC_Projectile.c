@@ -1,8 +1,8 @@
-class GC_ProjectileClass : ScriptComponentClass
+class GC_ProjectileComponentClass : ScriptComponentClass
 {
 }
 
-class GC_Projectile : ScriptComponent
+class GC_ProjectileComponent : ScriptComponent
 {
 	[Attribute("1", UIWidgets.Auto, "Is suppression enabled for this projectile")]
 	protected bool m_isSuppressionEnabled;
@@ -21,7 +21,7 @@ class GC_Projectile : ScriptComponent
 		super.OnDelete(owner);
 		
 		GC_SuppressionSystem suppresion = GC_SuppressionSystem.GetInstance();
-		if(suppresion)
-			suppresion.UnRegister(this);
+		if (suppresion)
+			suppresion.UnregisterProjectile(this);
 	}
 }

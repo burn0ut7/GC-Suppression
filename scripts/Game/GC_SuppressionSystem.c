@@ -3,36 +3,52 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("10", UIWidgets.Auto, "Max distance range in meters for a bullet to apply suppression")]
 	protected float m_maxRange;
 	
-	static protected GC_SuppressionSystem m_instance;
+	protected ref array<GC_ProjectileComponent> m_aProjectiles = {};
 	
-	protected ref array<GC_Projectile> m_projectiles = {};
-	
-	protected float m_Suppression = 0;
+	protected float m_fSuppression = 0;
 	
 	protected float m_maxRangeSq;
 	
+	static GC_SuppressionSystem GetInstance()
+	{
+		World world = GetGame().GetWorld();
+		if (!world)
+			return null;
+		return GC_SuppressionSystem.Cast(world.FindSystem(GC_SuppressionSystem));
+	}
+	
+	override void OnInit()
+	{
+		super.OnInit();
+	
+		m_maxRangeSq = Math.Pow(m_maxRange, 2);
+	}
 
 	override protected void OnUpdate(ESystemPoint point)
 	{
 		super.OnUpdate(point);
 		
+		if (m_aProjectiles.IsEmpty() && m_fSuppression == 0)
+			return;
+		
 		UpdateProjectiles();
+		UpdateSuppression();
 	}
 	
 	protected void UpdateProjectiles()
 	{
-		//Print("GC | UpdateProjectiles: " + m_projectiles.Count());
+		//Print("GC | UpdateProjectiles: " + m_aProjectiles.Count());
 		
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
-		if(!player)
+		if (!player)
 			return;
+		vector playerPos = player.GetOrigin();
 		
-		vector playerPos = GetGame().GetPlayerController().GetControlledEntity().GetOrigin();
-		
-		for (int i = m_projectiles.Count() - 1; i >= 0; i--)
+		for (int i = m_aProjectiles.Count() - 1; i >= 0; i--)
 		{
-		    GC_Projectile projectile = m_projectiles[i];
 		
+			GC_ProjectileComponent projectile = m_aProjectiles[i];
+			
 		    vector projPos = projectile.GetOwner().GetOrigin();
 
 		    // Direction from projectile to player
@@ -48,15 +64,17 @@ class GC_SuppressionSystem : GameSystem
 		    {
 		        // Projectile is no longer approaching → check distance
 		        float distSq = vector.DistanceSq(projPos, playerPos);
+				
+				// Maybe also LOS check between player and bullet to avoid/decrease suppression while in cover
 		
 		        if (distSq <= m_maxRangeSq)
 		        {
-		            ApplySuppression(projectile);
+		            AddSuppression(projectile);
 		        }
 		
 		        // Remove projectile regardless
 				Print("GC | Projectile Remove: " + projectile);
-		        m_projectiles.Remove(i);
+		        m_aProjectiles.Remove(i);
 		        continue;
 		    }
 		
@@ -64,67 +82,61 @@ class GC_SuppressionSystem : GameSystem
 		}
 	}
 	
-	void ApplySuppression(GC_Projectile projectile)
+	void AddSuppression(GC_ProjectileComponent projectile)
 	{
 		Print("GC | ApplySuppression: " + projectile);
+		
+		// increase m_fSuppression based on current value, projectile distance and mass
 		
 		//ShellMoveComponent shellComp = ShellMoveComponent.Cast(projectile.FindComponent(ShellMoveComponent));
 		//proj.shell = shellComp.GetComponentSource(projectile);
 	}
 	
-	static void Register(IEntity effect, BaseMuzzleComponent muzzle, IEntity projectile)
+	protected void UpdateSuppression()
 	{
-		if(!m_instance)
-			return;
+		// gradually decrease m_fSuppression as time passes
+		// update visual effect intensity based on m_fSuppression
+	}
+	
+	void RegisterProjectile(IEntity effect, BaseMuzzleComponent muzzle, IEntity projectile)
+	{
 		
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
-		if(!player)
+		if (!player)
 			return;
 		
-		GC_Projectile projComp = GC_Projectile.Cast(projectile.FindComponent(GC_Projectile));
-		if(!projComp)
+		GC_ProjectileComponent projComp = GC_ProjectileComponent.Cast(projectile.FindComponent(GC_ProjectileComponent));
+		if (!projComp)
 			return;
 		
-		if(!projComp.IsEnabled())
+		if (!projComp.IsEnabled())
 			return;
 		
 		ProjectileMoveComponent moveComp = ProjectileMoveComponent.Cast(projectile.FindComponent(ProjectileMoveComponent));
-		if(!moveComp)
+		if (!moveComp)
 			return;
 		
 		projComp.effect = effect;
 		projComp.muzzle = muzzle;
 		projComp.move = moveComp;
 
-		m_instance.m_projectiles.Insert(projComp);
+		m_aProjectiles.Insert(projComp);
 		
 		Print("GC | Projectile Registered: " + projectile);
 	}
 	
-	static void UnRegister(GC_Projectile projectile)
+	void UnregisterProjectile(GC_ProjectileComponent projectile)
 	{
 		//Try apply hit location
 		
 		Print("GC | Projectile UnRegistered: " + projectile);
 		
-		m_instance.m_projectiles.RemoveItem(projectile);
+		m_aProjectiles.RemoveItem(projectile);
 	}
 	
 	float GetMaxRange()
 	{
 		return m_maxRange;
 	}
-	
-	override void OnInit()
-	{
-		super.OnInit();
-	
-		m_maxRangeSq = Math.Pow(m_maxRange, 2);
-		m_instance = this;
-	}
-	
-	static GC_SuppressionSystem GetInstance()
-	{
-		return m_instance;
-	}
+
 }

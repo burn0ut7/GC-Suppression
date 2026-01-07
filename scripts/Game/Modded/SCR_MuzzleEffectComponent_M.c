@@ -4,14 +4,14 @@ modded class SCR_MuzzleEffectComponent
 	{
 		super.OnFired(effectEntity, muzzle, projectileEntity);
 
-		if(IsPlayerInConeXZ(muzzle))
-			GC_SuppressionSystem.Register(effectEntity, muzzle, projectileEntity);
+		if (IsPlayerInConeXZ(muzzle))
+			GC_SuppressionSystem.GetInstance().RegisterProjectile(effectEntity, muzzle, projectileEntity);
 	}
 	
 	bool IsPlayerInConeXZ(BaseMuzzleComponent muzzle)
 	{
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
-		if(!player)
+		if (!player)
 			return false;
 		
 		vector muzzleTransform[4];
