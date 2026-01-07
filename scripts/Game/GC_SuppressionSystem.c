@@ -60,27 +60,19 @@ class GC_SuppressionSystem : GameSystem
 			GC_ProjectileComponent projectile = m_aProjectiles[i];
 			
 		    vector projPos = projectile.GetOwner().GetOrigin();
-
-		    // Direction from projectile to player
-		    vector toPlayer = playerPos - projPos;
-		
-		    // Projectile velocity
-		    vector velocity = projectile.move.GetVelocity();
 		
 		    // Check if projectile is moving toward the player
-		    float approach = vector.Dot(toPlayer, velocity);
+		    float approach = vector.Dot(playerPos - projPos, projectile.move.GetVelocity());
 		
 		    if (approach <= 0)
 		    {
 		        // Projectile is no longer approaching → check distance
-		        float distSq = vector.DistanceSq(projPos, playerPos);
+		        float dist = vector.Distance(projPos, playerPos);
 				
-				// Maybe also LOS check between player and bullet to avoid/decrease suppression while in cover
+				// Maybe also LOS check that decreases suppression of the player was behind cover in the direction the bullet came from
 		
-		        if (distSq <= m_maxRangeSq)
-		        {
-		            AddSuppression(projectile);
-		        }
+		        if (dist <= m_maxRange)
+					AddSuppression(projectile, dist);
 		
 		        // Remove projectile regardless
 				Print("GC | Projectile Remove: " + projectile);
@@ -92,7 +84,7 @@ class GC_SuppressionSystem : GameSystem
 		}
 	}
 	
-	void AddSuppression(GC_ProjectileComponent projectile)
+	void AddSuppression(GC_ProjectileComponent projectile, float distance)
 	{
 		Print("GC | ApplySuppression: " + projectile);
 		
