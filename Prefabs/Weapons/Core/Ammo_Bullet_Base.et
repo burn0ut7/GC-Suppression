@@ -1,0 +1,7 @@
+Projectile {
+ ID "DA5C6308000CDEF2"
+ components {
+  GC_Projectile "{684E2A7B6768EAD6}" {
+  }
+ }
+}

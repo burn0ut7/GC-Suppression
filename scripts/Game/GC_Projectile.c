@@ -9,7 +9,7 @@ class GC_Projectile : ScriptComponent
 	
 	IEntity effect;
 	BaseMuzzleComponent muzzle;
-	vector position;
+	ProjectileMoveComponent move;
 	
 	bool IsEnabled()
 	{
@@ -20,7 +20,7 @@ class GC_Projectile : ScriptComponent
 	{
 		super.OnDelete(owner);
 		
-		GC_SupressionController suppresion = GC_SupressionController.GetInstance();
+		GC_SupressionSystem suppresion = GC_SupressionSystem.GetInstance();
 		if(suppresion)
 			suppresion.UnRegister(this);
 	}
