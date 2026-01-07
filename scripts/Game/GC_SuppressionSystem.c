@@ -7,8 +7,6 @@ class GC_SuppressionSystem : GameSystem
 	
 	protected float m_fSuppression = 0;
 	
-	protected float m_maxRangeSq;
-	
 	static GC_SuppressionSystem GetInstance()
 	{
 		World world = GetGame().GetWorld();
@@ -20,8 +18,6 @@ class GC_SuppressionSystem : GameSystem
 	override void OnInit()
 	{
 		super.OnInit();
-	
-		m_maxRangeSq = Math.Pow(m_maxRange, 2);
 	}
 
 	override static void InitInfo(WorldSystemInfo outInfo)
@@ -133,9 +129,9 @@ class GC_SuppressionSystem : GameSystem
 		if(player)
 		{
 			vector projPos = projectile.GetOwner().GetOrigin();
-			float distSq = vector.DistanceSq(projPos, player.GetOrigin());
+			float dist = vector.Distance(projPos, player.GetOrigin());
 		
-			if(distSq <= m_maxRangeSq)
+			if (dist <= m_maxRange)
 			
 		}
 		
