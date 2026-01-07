@@ -31,7 +31,7 @@ class GC_SuppressionSystem : GameSystem
 			.SetAbstract(false)
 			.SetUnique(true)
 			.SetLocation(WorldSystemLocation.Client)
-			.AddPoint(WorldSystemPoint.Frame);
+			.AddPoint(WorldSystemPoint.PostFixedFrame);
 	}
 
 	override protected void OnUpdate(ESystemPoint point)
