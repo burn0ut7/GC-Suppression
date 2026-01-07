@@ -3,21 +3,13 @@ class GC_SupressionSystem : GameSystem
 	[Attribute("10", UIWidgets.Auto, "Max distance range in meters for a bullet to apply suppression")]
 	protected float m_maxRange;
 	
-	static protected GC_SupressionSystem m_instance;
+	protected static GC_SupressionSystem m_instance;
 	
 	protected ref array<GC_Projectile> m_projectiles = {};
 	
 	protected float m_Suppression = 0;
 	
-	protected float m_maxRangeSq;
-	
-
-	override protected void OnUpdate(ESystemPoint point)
-	{
-		super.OnUpdate(point);
-		
-		UpdateProjectiles();
-	}
+	protected static float m_maxRangeSq;
 	
 	protected void UpdateProjectiles()
 	{
@@ -27,40 +19,29 @@ class GC_SupressionSystem : GameSystem
 		if(!player)
 			return;
 		
-		vector playerPos = GetGame().GetPlayerController().GetControlledEntity().GetOrigin();
-		
+		vector playerPos = player.GetOrigin();
+
 		for (int i = m_projectiles.Count() - 1; i >= 0; i--)
 		{
-		    GC_Projectile projectile = m_projectiles[i];
-		
-		    vector projPos = projectile.GetOwner().GetOrigin();
-
-		    // Direction from projectile to player
-		    vector toPlayer = playerPos - projPos;
-		
-		    // Projectile velocity
-		    vector velocity = projectile.move.GetVelocity();
-		
-		    // Check if projectile is moving toward the player
-		    float approach = vector.Dot(toPlayer, velocity);
-		
-		    if (approach <= 0)
-		    {
-		        // Projectile is no longer approaching → check distance
-		        float distSq = vector.DistanceSq(projPos, playerPos);
-		
-		        if (distSq <= m_maxRangeSq)
-		        {
-		            ApplySuppression(projectile);
-		        }
-		
-		        // Remove projectile regardless
+			GC_Projectile projectile = m_projectiles[i];
+			
+			vector projPos = projectile.GetOwner().GetOrigin();
+			vector toPlayer = playerPos - projPos;
+			
+			vector velocity = projectile.move.GetVelocity();
+			
+			float approach = vector.Dot(toPlayer, velocity);
+			
+			if (approach <= 0)
+			{
+				float distSq = vector.DistanceSq(projPos, playerPos);
+				
+				if (distSq <= m_maxRangeSq)
+				ApplySuppression(projectile);
+				
 				Print("GC | Projectile Remove: " + projectile);
-		        m_projectiles.Remove(i);
-		        continue;
-		    }
-		
-		    // Projectile is still approaching → do nothing, keep tracking
+				m_projectiles.Remove(i);
+			}
 		}
 	}
 	
@@ -101,18 +82,36 @@ class GC_SupressionSystem : GameSystem
 		Print("GC | Projectile Registered: " + projectile);
 	}
 	
-	static void UnRegister(GC_Projectile projectile)
+	static void OnProjectileDelete(GC_Projectile projectile)
 	{
-		//Try apply hit location
+		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
+		if(player)
+		{
+			vector projPos = projectile.GetOwner().GetOrigin();
+			float distSq = vector.DistanceSq(projPos, player.GetOrigin());
 		
-		Print("GC | Projectile UnRegistered: " + projectile);
+			if(distSq <= m_maxRangeSq)
+			
+		}
 		
 		m_instance.m_projectiles.RemoveItem(projectile);
 	}
-	
+
 	float GetMaxRange()
 	{
 		return m_maxRange;
+	}
+	
+	static GC_SupressionSystem GetInstance()
+	{
+		return m_instance;
+	}
+	
+	override protected void OnUpdate(ESystemPoint point)
+	{
+		super.OnUpdate(point);
+		
+		UpdateProjectiles();
 	}
 	
 	override void OnInit()
@@ -123,8 +122,13 @@ class GC_SupressionSystem : GameSystem
 		m_instance = this;
 	}
 	
-	static GC_SupressionSystem GetInstance()
+	override static void InitInfo(WorldSystemInfo outInfo)
 	{
-		return m_instance;
+		super.InitInfo(outInfo);
+		outInfo
+			.SetAbstract(false)
+			.SetUnique(true)
+			.SetLocation(WorldSystemLocation.Client)
+			.AddPoint(WorldSystemPoint.Frame);
 	}
 }

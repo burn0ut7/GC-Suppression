@@ -35,8 +35,14 @@ modded class SCR_MuzzleEffectComponent
 	        return true;
 	
 	    toPlayer.Normalize();
-	
-	    // Dynamic half-angle (radians)
+		
+		//Account for wind? Only affects rockets rn
+		//ChimeraWorld world = GetGame().GetWorld();
+		//BaseTimeAndWeatherManagerEntity twm = world.GetTimeAndWeatherManager();
+		//float windSpeed = twm.GetWindSpeed();
+		//<0, 360.0>
+		//float windDirction = twm.GetWindDirection();
+		
 	    float halfAngle = Math.Atan2(maxRange, distance);
 	    float cosMax = Math.Cos(halfAngle);
 	

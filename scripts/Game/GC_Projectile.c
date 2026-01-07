@@ -22,6 +22,6 @@ class GC_Projectile : ScriptComponent
 		
 		GC_SupressionSystem suppresion = GC_SupressionSystem.GetInstance();
 		if(suppresion)
-			suppresion.UnRegister(this);
+			suppresion.OnProjectileDelete(this);
 	}
 }
