@@ -20,7 +20,7 @@ class GC_Projectile : ScriptComponent
 	{
 		super.OnDelete(owner);
 		
-		GC_SupressionSystem suppresion = GC_SupressionSystem.GetInstance();
+		GC_SuppressionSystem suppresion = GC_SuppressionSystem.GetInstance();
 		if(suppresion)
 			suppresion.UnRegister(this);
 	}

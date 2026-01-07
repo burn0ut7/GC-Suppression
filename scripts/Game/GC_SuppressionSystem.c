@@ -1,9 +1,9 @@
-class GC_SupressionSystem : GameSystem
+class GC_SuppressionSystem : GameSystem
 {
 	[Attribute("10", UIWidgets.Auto, "Max distance range in meters for a bullet to apply suppression")]
 	protected float m_maxRange;
 	
-	static protected GC_SupressionSystem m_instance;
+	static protected GC_SuppressionSystem m_instance;
 	
 	protected ref array<GC_Projectile> m_projectiles = {};
 	
@@ -123,7 +123,7 @@ class GC_SupressionSystem : GameSystem
 		m_instance = this;
 	}
 	
-	static GC_SupressionSystem GetInstance()
+	static GC_SuppressionSystem GetInstance()
 	{
 		return m_instance;
 	}

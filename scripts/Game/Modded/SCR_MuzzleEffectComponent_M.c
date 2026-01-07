@@ -5,7 +5,7 @@ modded class SCR_MuzzleEffectComponent
 		super.OnFired(effectEntity, muzzle, projectileEntity);
 
 		if(IsPlayerInConeXZ(muzzle))
-			GC_SupressionSystem.Register(effectEntity, muzzle, projectileEntity);
+			GC_SuppressionSystem.Register(effectEntity, muzzle, projectileEntity);
 	}
 	
 	bool IsPlayerInConeXZ(BaseMuzzleComponent muzzle)
@@ -17,7 +17,7 @@ modded class SCR_MuzzleEffectComponent
 		vector muzzleTransform[4];
 		muzzle.GetOwner().GetWorldTransform(muzzleTransform);
 
-	    float maxRange = GC_SupressionSystem.GetInstance().GetMaxRange();
+	    float maxRange = GC_SuppressionSystem.GetInstance().GetMaxRange();
 	
 	    vector muzzlePos = muzzleTransform[3];
 	    vector muzzleDir = muzzleTransform[2];
