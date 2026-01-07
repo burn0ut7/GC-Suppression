@@ -24,6 +24,16 @@ class GC_SuppressionSystem : GameSystem
 		m_maxRangeSq = Math.Pow(m_maxRange, 2);
 	}
 
+	override static void InitInfo(WorldSystemInfo outInfo)
+	{
+		super.InitInfo(outInfo);
+		outInfo
+			.SetAbstract(false)
+			.SetUnique(true)
+			.SetLocation(WorldSystemLocation.Client)
+			.AddPoint(WorldSystemPoint.Frame);
+	}
+
 	override protected void OnUpdate(ESystemPoint point)
 	{
 		super.OnUpdate(point);
@@ -127,16 +137,21 @@ class GC_SuppressionSystem : GameSystem
 	
 	void UnregisterProjectile(GC_ProjectileComponent projectile)
 	{
-		//Try apply hit location
+		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
+		if(player)
+		{
+			vector projPos = projectile.GetOwner().GetOrigin();
+			float distSq = vector.DistanceSq(projPos, player.GetOrigin());
 		
-		Print("GC | Projectile UnRegistered: " + projectile);
+			if(distSq <= m_maxRangeSq)
+			
+		}
 		
 		m_aProjectiles.RemoveItem(projectile);
 	}
-	
+
 	float GetMaxRange()
 	{
 		return m_maxRange;
 	}
-
 }
