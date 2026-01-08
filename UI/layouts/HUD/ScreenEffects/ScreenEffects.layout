@@ -1,0 +1,33 @@
+FrameWidgetClass {
+ {
+  OverlayWidgetClass "{68503B7535B4C114}" {
+   Name "GC_Suppression"
+   Slot FrameWidgetSlot "{68503B7535B4C109}" {
+    Anchor 0 0 1 1
+    PositionX 0
+    PositionY 0
+    OffsetTop 0
+    SizeX -1820
+    OffsetRight 0
+    SizeY -1050
+    OffsetBottom 0
+   }
+   "Is Visible" 0
+   {
+    ImageWidgetClass "{68503B75751ADACA}" {
+     Name "GC_vignette"
+     Slot OverlayWidgetSlot "{68503B747FB079F7}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     Opacity 0.95
+     Color 0 0 0 1
+     Size 1920 1080
+     Mask "{77CF24D5CA2DB63F}UI/Textures/ScreenEffects/Suppression/supressionVignette2.edds"
+     "Transition width" 0.7
+     Progress 0
+    }
+   }
+  }
+ }
+}
