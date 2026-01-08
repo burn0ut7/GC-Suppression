@@ -1,10 +1,15 @@
 class GC_SuppressionSystem : GameSystem
 {
 	[Attribute("10", UIWidgets.Auto, "Max distance range in meters for a bullet to apply suppression")]
-	protected float m_maxRange;
+	protected float m_fMaxRange;
 	
+	[Attribute("50", UIWidgets.Auto, "Distance in which cover from fire is recognized")]
+	protected float m_fCoverTraceLength;
+	
+	//! Projectiles tracked by the system
 	protected ref array<GC_ProjectileComponent> m_aProjectiles = {};
 	
+	//! Player suppression value
 	protected float m_fSuppression = 0;
 	
 	static GC_SuppressionSystem GetInstance()
@@ -64,11 +69,17 @@ class GC_SuppressionSystem : GameSystem
 		    {
 		        // Projectile is no longer approaching → check distance
 		        float dist = vector.Distance(projPos, playerPos);
-				
-				// Maybe also LOS check that decreases suppression of the player was behind cover in the direction the bullet came from
 		
-		        if (dist <= m_maxRange)
-					AddSuppression(projectile, dist);
+		        if (dist <= m_fMaxRange)
+				{
+					// "perfect shot" projectile trace towards player head to check whether it would have been in some kind of cover
+					SCR_ChimeraCharacter cc = SCR_ChimeraCharacter.Cast(player);
+					TraceParam tp = MakeTraceParam(cc.EyePosition() - projectile.move.GetVelocity().Normalized() * m_fCoverTraceLength, cc.EyePosition(), TraceFlags.ENTS | TraceFlags.WORLD);
+					tp.Exclude = player;
+					float trace = GetWorld().TraceMove(tp);
+					
+					AddSuppression(projectile, dist, m_fCoverTraceLength * trace > m_fCoverTraceLength - 0.25);
+				}
 		
 		        // Remove projectile regardless
 				Print("GC | Projectile Remove: " + projectile);
@@ -80,7 +91,7 @@ class GC_SuppressionSystem : GameSystem
 		}
 	}
 	
-	void AddSuppression(GC_ProjectileComponent projectile, float distance)
+	void AddSuppression(GC_ProjectileComponent projectile, float distance, bool inCover)
 	{
 		Print("GC | ApplySuppression: " + projectile);
 		
@@ -131,7 +142,7 @@ class GC_SuppressionSystem : GameSystem
 			vector projPos = projectile.GetOwner().GetOrigin();
 			float dist = vector.Distance(projPos, player.GetOrigin());
 		
-			if (dist <= m_maxRange)
+			if (dist <= m_fMaxRange)
 			
 		}
 		
@@ -140,6 +151,6 @@ class GC_SuppressionSystem : GameSystem
 
 	float GetMaxRange()
 	{
-		return m_maxRange;
+		return m_fMaxRange;
 	}
 }
