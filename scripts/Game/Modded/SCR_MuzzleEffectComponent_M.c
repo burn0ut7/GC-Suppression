@@ -22,11 +22,9 @@ modded class SCR_MuzzleEffectComponent
 		
 		vector muzzleTransform[4];
 		muzzle.GetOwner().GetWorldTransform(muzzleTransform);
-
-	    float maxRange = GC_SuppressionSystem.GetInstance().GetMaxRange();
 	
 	    vector muzzlePos = muzzleTransform[3];
-	    vector muzzleDir = muzzleTransform[2];
+	    vector muzzleDir = muzzleTransform[2].Normalized();
 		vector playerPos = player.GetOrigin();
 		
 		// 1. min distance
@@ -34,35 +32,20 @@ modded class SCR_MuzzleEffectComponent
 	    if (distance < 10)
 	        return false;
 		
+		// 2. maximum angle (~35° forward cone)
 		vector toPlayer = playerPos - muzzlePos;
-		
-		// 2. maximum angle
-		if (vector.DotXZ(muzzleDir, toPlayer) < 0.9)
+		if (vector.DotXZ(muzzleDir, toPlayer.Normalized()) < 0.95)
 			return false;
 		
-		vector muzzleDirNormalized = muzzleDir.Normalized();
-		
-		// 3. maximum miss dist
+		// 3. maximum miss distance
+		float t = vector.DotXZ(toPlayer, muzzleDir);
+		if (t < 0) // technically double checking. leaving still in case above was changed.
+			return false;
+		vector passPoint = muzzlePos + muzzleDir * t;
+		if (vector.DistanceXZ(playerPos, passPoint) > 100) // 100 is kind of arbitrary but should be enough
+			return false;
 		
 	
-	    muzzlePos[1] = 0;
-	    muzzleDir[1] = 0;
-	    playerPos[1] = 0;
-	
-	    toPlayer.Normalize();
-		
-		//Account for wind? Only affects rockets rn
-		//ChimeraWorld world = GetGame().GetWorld();
-		//BaseTimeAndWeatherManagerEntity twm = world.GetTimeAndWeatherManager();
-		//float windSpeed = twm.GetWindSpeed();
-		//<0, 360.0>
-		//float windDirction = twm.GetWindDirection();
-		
-	    float halfAngle = Math.Atan2(maxRange, distance);
-	    float cosMax = Math.Cos(halfAngle);
-	
-	    float dot = vector.Dot(muzzleDir, toPlayer);
-	
-	    return dot >= cosMax;
+	    return true;
 	}
 }
