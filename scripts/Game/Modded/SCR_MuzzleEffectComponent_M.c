@@ -45,7 +45,6 @@ modded class SCR_MuzzleEffectComponent
 		if (vector.DistanceXZ(playerPos, passPoint) > 100) // 100 is kind of arbitrary but should be enough
 			return false;
 		
-	
 	    return true;
 	}
 }

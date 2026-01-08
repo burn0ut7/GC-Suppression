@@ -78,6 +78,7 @@ class GC_SuppressionSystem : GameSystem
 		
 		        if (dist <= m_fMaxRange)
 				{
+					// Cover check should move to seperate method so it can be reused for hits around a player
 					// "perfect shot" projectile trace towards player head to check whether it would have been in some kind of cover
 					SCR_ChimeraCharacter cc = SCR_ChimeraCharacter.Cast(player);
 					TraceParam tp = MakeTraceParam(cc.EyePosition() - projectile.move.GetVelocity().Normalized() * m_fCoverTraceLength, cc.EyePosition(), TraceFlags.ENTS | TraceFlags.WORLD);
@@ -99,13 +100,12 @@ class GC_SuppressionSystem : GameSystem
 	
 	void AddSuppression(GC_ProjectileComponent projectile, float distance, bool inCover)
 	{
-		Print("GC | ApplySuppression: " + projectile);
+		Print("GC | AddSuppression: " + projectile);
 		
 		// increase m_fSuppression based on current value, projectile distance and possibly mass
 		m_fSuppression = Math.Min(m_fMaxSuppression, m_fSuppression + 0);
 		
-		//ShellMoveComponent shellComp = ShellMoveComponent.Cast(projectile.FindComponent(ShellMoveComponent));
-		//proj.shell = shellComp.GetComponentSource(projectile);
+		//BaseContainer container = projectile.move.GetComponentSource(projectile);
 	}
 	
 	protected int m_iLastUpdate = 0;
@@ -123,7 +123,6 @@ class GC_SuppressionSystem : GameSystem
 	
 	void RegisterProjectile(IEntity effect, BaseMuzzleComponent muzzle, IEntity projectile)
 	{
-		
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
 		if (!player)
 			return;
@@ -156,8 +155,9 @@ class GC_SuppressionSystem : GameSystem
 			vector projPos = projectile.GetOwner().GetOrigin();
 			float dist = vector.Distance(projPos, player.GetOrigin());
 		
-			if (dist <= m_fMaxRange)
-			
+			//if (dist <= m_fMaxRange)
+			//Get if entity hit nearby, add extra supression
+			//Should prob be seperate method
 		}
 		
 		m_aProjectiles.RemoveItem(projectile);
