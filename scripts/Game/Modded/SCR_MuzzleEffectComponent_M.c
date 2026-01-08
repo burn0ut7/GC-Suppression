@@ -32,9 +32,9 @@ modded class SCR_MuzzleEffectComponent
 	    if (distance < 10)
 	        return false;
 		
-		// 2. maximum angle (~35° forward cone)
+		// 2. maximum angle (~25° forward cone)
 		vector toPlayer = playerPos - muzzlePos;
-		if (vector.DotXZ(muzzleDir, toPlayer.Normalized()) < 0.95)
+		if (vector.DotXZ(muzzleDir, toPlayer.Normalized()) < 0.975)
 			return false;
 		
 		// 3. maximum miss distance
