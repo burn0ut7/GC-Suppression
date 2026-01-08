@@ -4,12 +4,18 @@ modded class SCR_MuzzleEffectComponent
 	{
 		super.OnFired(effectEntity, muzzle, projectileEntity);
 
-		if (IsPlayerInConeXZ(muzzle))
+		if (ShouldInsert(muzzle))
 			GC_SuppressionSystem.GetInstance().RegisterProjectile(effectEntity, muzzle, projectileEntity);
 	}
 	
-	bool IsPlayerInConeXZ(BaseMuzzleComponent muzzle)
+	protected bool ShouldInsert(BaseMuzzleComponent muzzle)
 	{
+		// insertion criteria
+		// 1. minimum distance (don't suppress yourself or squad members immediately next to you)
+		// 2. maximum angle (don't suppress nearby players who aren't close to your cone of fire)
+		// 3. maximum miss distance (for optimization purposes, if the shot probably passes the player at a large XZ distance, don't bother keeping track)
+		
+		
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
 		if (!player)
 			return false;
@@ -22,17 +28,26 @@ modded class SCR_MuzzleEffectComponent
 	    vector muzzlePos = muzzleTransform[3];
 	    vector muzzleDir = muzzleTransform[2];
 		vector playerPos = player.GetOrigin();
+		
+		// 1. min distance
+	    float distance = vector.Distance(playerPos, muzzlePos);
+	    if (distance < 10)
+	        return false;
+		
+		vector toPlayer = playerPos - muzzlePos;
+		
+		// 2. maximum angle
+		if (vector.DotXZ(muzzleDir, toPlayer) < 0.9)
+			return false;
+		
+		vector muzzleDirNormalized = muzzleDir.Normalized();
+		
+		// 3. maximum miss dist
+		
 	
 	    muzzlePos[1] = 0;
 	    muzzleDir[1] = 0;
 	    playerPos[1] = 0;
-	
-	    vector toPlayer = playerPos - muzzlePos;
-	
-	    float distance = toPlayer.Length();
-		
-	    if (distance < 0.1)
-	        return true;
 	
 	    toPlayer.Normalize();
 		

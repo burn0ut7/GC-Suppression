@@ -3,8 +3,14 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("10", UIWidgets.Auto, "Max distance range in meters for a bullet to apply suppression")]
 	protected float m_fMaxRange;
 	
-	[Attribute("50", UIWidgets.Auto, "Distance in which cover from fire is recognized")]
+	[Attribute("50", UIWidgets.Auto, "Distance up to which cover is recognized (meters)")]
 	protected float m_fCoverTraceLength;
+	
+	[Attribute("5", UIWidgets.Auto, "For how many seconds suppression can last when fully accumulated")]
+	protected float m_fMaxSuppression;
+	
+	[Attribute("1", UIWidgets.Auto, "Multiplier for the visual intensity of the suppression effect")]
+	protected float m_fEffectIntensity;
 	
 	//! Projectiles tracked by the system
 	protected ref array<GC_ProjectileComponent> m_aProjectiles = {};
@@ -78,7 +84,7 @@ class GC_SuppressionSystem : GameSystem
 					tp.Exclude = player;
 					float trace = GetWorld().TraceMove(tp);
 					
-					AddSuppression(projectile, dist, m_fCoverTraceLength * trace > m_fCoverTraceLength - 0.25);
+					AddSuppression(projectile, dist, m_fCoverTraceLength * trace > m_fCoverTraceLength - 0.1);
 				}
 		
 		        // Remove projectile regardless
@@ -95,16 +101,24 @@ class GC_SuppressionSystem : GameSystem
 	{
 		Print("GC | ApplySuppression: " + projectile);
 		
-		// increase m_fSuppression based on current value, projectile distance and mass
+		// increase m_fSuppression based on current value, projectile distance and possibly mass
+		m_fSuppression = Math.Min(m_fMaxSuppression, m_fSuppression + 0);
 		
 		//ShellMoveComponent shellComp = ShellMoveComponent.Cast(projectile.FindComponent(ShellMoveComponent));
 		//proj.shell = shellComp.GetComponentSource(projectile);
 	}
 	
+	protected int m_iLastUpdate = 0;
+	
 	protected void UpdateSuppression()
 	{
-		// gradually decrease m_fSuppression as time passes
-		// update visual effect intensity based on m_fSuppression
+		// linearily decrease m_fSuppression as time passes
+		
+		int ms = System.GetTickCount();
+		m_fSuppression = Math.Max(0, m_fSuppression - 1000 * (ms - m_iLastUpdate));
+		m_iLastUpdate = ms;
+		
+		// update visual effect intensity based on m_fSuppression and m_fSuppressionIntensity
 	}
 	
 	void RegisterProjectile(IEntity effect, BaseMuzzleComponent muzzle, IEntity projectile)
