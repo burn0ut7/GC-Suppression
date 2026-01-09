@@ -3,32 +3,30 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("10", UIWidgets.Auto, "Max distance range in meters for a bullet to apply suppression")]
 	protected float m_fMaxRange;
 	
+	[Attribute("1", UIWidgets.Auto, "Distance range in meters for a bullet to apply flinch")]
+	protected float m_fFlinchRange;
+	
 	[Attribute("50", UIWidgets.Auto, "Distance up to which cover is recognized (meters)")]
 	protected float m_fCoverTraceLength;
 	
 	[Attribute("5.0", UIWidgets.Auto, "Seconds of no new suppression before recovery starts")]
 	protected float m_fRecoveryDelay;
 	
-	// Suppression recovered per second once recovery starts
 	[Attribute("0.1", UIWidgets.Auto, "Suppression recovery speed per second")]
 	protected float m_fRecoveryRate;
 	
 	[Attribute("1", UIWidgets.Auto, "Multiplier for the visual intensity of the suppression effect")]
 	protected float m_fEffectIntensity;
-	
-	// How much mass contributes to suppression
-	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to projectile mass for suppression")]
+
+	[Attribute("2.0", UIWidgets.Auto, "Multiplier applied to projectile mass for suppression")]
 	protected float m_fMassMultiplier;
 	
-	// How much speed contributes to suppression
 	[Attribute("0.001", UIWidgets.Auto, "Multiplier applied to projectile speed for suppression")]
 	protected float m_fSpeedMultiplier;
 	
-	// Global scale for suppression added per bullet
-	[Attribute("0.05", UIWidgets.Auto, "Global suppression multiplier per bullet")]
+	[Attribute("0.075", UIWidgets.Auto, "Global suppression multiplier per bullet")]
 	protected float m_fBaseSuppressionMultiplier;
 	
-	// Suppression multiplier when in cover (0.5 = -50%)
 	[Attribute("0.5", UIWidgets.Auto, "Suppression multiplier when target is in cover (0.5 = -50%)")]
 	protected float m_fCoverMultiplier;
 
@@ -99,8 +97,9 @@ class GC_SuppressionSystem : GameSystem
 		    if (approach <= 0)
 		    {
 		        // Projectile is no longer approaching → check distance
-		        float dist = vector.Distance(projPos, playerEyePos);
-
+				vector flybyPos = GetFlybyPoint(projPos, projectile.position, playerEyePos);
+				float dist = vector.Distance(flybyPos, playerEyePos);
+				
 				if (dist <= m_fMaxRange)
 				{
 					// Cover check should move to seperate method so it can be reused for hits around a player
@@ -108,22 +107,24 @@ class GC_SuppressionSystem : GameSystem
 					TraceParam tp = MakeTraceParam(playerEyePos - projectile.move.GetVelocity().Normalized() * m_fCoverTraceLength, playerEyePos, TraceFlags.ENTS | TraceFlags.WORLD);
 					tp.Exclude = player;
 					float trace = GetWorld().TraceMove(tp);
-					CreateDebugCircle(projPos, Color.GREEN);
+					CreateDebugCircle(flybyPos, Color.GREEN);
 					AddSuppression(projectile, dist, m_fCoverTraceLength * trace > m_fCoverTraceLength - 0.1);
 				}
 				else
 				{
-					CreateDebugCircle(projPos, Color.PINK);
+					CreateDebugCircle(flybyPos, Color.PINK);
 				}
 				
-		        // Remove projectile regardless
-				//Print("GC | Projectile Remove: " + projectile);
+				if (dist <= m_fFlinchRange)
+					Flinch();
+
 		        m_aProjectiles.Remove(i);
 		        continue;
 		    }
 			else
 				CreateDebugCircle(projPos);
 		
+			projectile.position = projPos;
 		    // Projectile is still approaching → do nothing, keep tracking
 		}
 	}
@@ -188,8 +189,6 @@ class GC_SuppressionSystem : GameSystem
 		m_fSuppression = Math.Clamp(m_fSuppression - decay, 0, 1);
 		
 		UpdateEffect();
-		
-		PrintFormat("GC | Recover: " + decay);
 	}
 	
 	protected void UpdateEffect()
@@ -199,7 +198,21 @@ class GC_SuppressionSystem : GameSystem
 		if(sse)
 			sse.UpdateSuppresion();
 	}
+	
+	protected void Flinch()
+	{
+		//Aim effect. kind of wonkie
+		//IEntity player = GetGame().GetPlayerController().GetControlledEntity();
+		//CharacterControllerComponent cc = CharacterControllerComponent.Cast(player.FindComponent(CharacterControllerComponent));
+		//vector dir = "45 45 0";
+		//cc.GetInputContext().SetAimingAngles( dir );
+		//cc.GetInputContext().SetHeadingAngle( 45 );
 
+		SCR_ScreenEffectsManager sem = SCR_ScreenEffectsManager.GetScreenEffectsDisplay();
+		GC_SuppressionScreenEffect sse = GC_SuppressionScreenEffect.Cast(sem.GetEffect(GC_SuppressionScreenEffect));
+		if(sse)
+			sse.Flinch();
+	}
 	
 	void RegisterProjectile(IEntity effect, BaseMuzzleComponent muzzle, IEntity projectile)
 	{
@@ -221,7 +234,8 @@ class GC_SuppressionSystem : GameSystem
 		projComp.effect = effect;
 		projComp.muzzle = muzzle;
 		projComp.move = moveComp;
-
+		projComp.position = muzzle.GetOwner().GetOrigin();
+		
 		m_aProjectiles.Insert(projComp);
 		
 		Print("GC | Projectile Registered: " + projectile);
@@ -241,6 +255,24 @@ class GC_SuppressionSystem : GameSystem
 		}
 		
 		m_aProjectiles.RemoveItem(projectile);
+	}
+
+	vector GetFlybyPoint(vector currPos, vector prevPos, vector playerPos)
+	{
+		vector seg = currPos - prevPos;
+		float segLenSq = vector.DistanceSq(prevPos, currPos);
+	
+		if (segLenSq <= 0.000001)
+			return prevPos;
+	
+		vector toPlayer = playerPos - prevPos;
+	
+		float t = vector.Dot(toPlayer, seg) / segLenSq;
+		t = Math.Clamp(t, 0.0, 1.0);
+	
+		vector closestPoint = prevPos + seg * t;
+		
+		return closestPoint;
 	}
 
 	float GetAmount()

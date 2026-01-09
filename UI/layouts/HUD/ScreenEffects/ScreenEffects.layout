@@ -26,6 +26,19 @@ FrameWidgetClass {
      "Transition width" 0.7
      Progress 0
     }
+    ImageWidgetClass "{6853047AFC9B283C}" {
+     Name "GC_flinch"
+     Slot OverlayWidgetSlot "{68503B747FB079F7}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     Opacity 0.9
+     Color 0 0 0 1
+     Size 1920 1080
+     Mask "{77CF24D5CA2DB63F}UI/Textures/ScreenEffects/Suppression/supressionVignette2.edds"
+     "Transition width" 1
+     Progress 0
+    }
    }
   }
  }

@@ -1,13 +1,11 @@
 ColorsEffect {
  Enabled 1
- Contrast 1
- Saturation = 1
  Refs {
   "Enabled"
-  "LM_SuppressionScreenEffect.s_bEnableColorEffect"
+  "GC_SuppressionScreenEffect.s_bEnableColorEffect"
   "Contrast"
-  "LM_SuppressionScreenEffect.s_fContrast"
+  "GC_SuppressionScreenEffect.s_fContrast"
   "Saturation"
-  "LM_SuppressionScreenEffect.s_fSaturation"
+  "GC_SuppressionScreenEffect.s_fSaturation"
  }
 }

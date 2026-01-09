@@ -1,7 +1,19 @@
 RadialBlurEffect {
  PowerX 0
  PowerY 0
- SizeX 0.5
- SizeY 0.5
+ SizeX 0
+ SizeY 0
  MaxPixelsNum 8
+ Refs {
+  "Enabled"
+  "GC_SuppressionScreenEffect.s_bEnableRadialBlur"
+  "PowerX"
+  "GC_SuppressionScreenEffect.s_fBlurriness"
+  "PowerY"
+  "GC_SuppressionScreenEffect.s_fBlurriness"
+  "SizeX"
+  "GC_SuppressionScreenEffect.s_fBlurrinessSize"
+  "SizeY"
+  "GC_SuppressionScreenEffect.s_fBlurrinessSize"
+ }
 }

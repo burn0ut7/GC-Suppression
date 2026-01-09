@@ -10,6 +10,7 @@ class GC_ProjectileComponent : ScriptComponent
 	IEntity effect;
 	BaseMuzzleComponent muzzle;
 	ProjectileMoveComponent move;
+	vector position;
 	
 	bool IsEnabled()
 	{
