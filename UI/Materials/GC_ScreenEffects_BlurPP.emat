@@ -1,0 +1,7 @@
+RadialBlurEffect {
+ PowerX 0
+ PowerY 0
+ SizeX 0.5
+ SizeY 0.5
+ MaxPixelsNum 8
+}

@@ -12,7 +12,6 @@ FrameWidgetClass {
     SizeY -1050
     OffsetBottom 0
    }
-   "Is Visible" 0
    {
     ImageWidgetClass "{68503B75751ADACA}" {
      Name "GC_vignette"

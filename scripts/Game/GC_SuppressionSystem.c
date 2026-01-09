@@ -6,18 +6,40 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("50", UIWidgets.Auto, "Distance up to which cover is recognized (meters)")]
 	protected float m_fCoverTraceLength;
 	
-	[Attribute("5", UIWidgets.Auto, "For how many seconds suppression can last when fully accumulated")]
-	protected float m_fMaxSuppression;
+	[Attribute("5.0", UIWidgets.Auto, "Seconds of no new suppression before recovery starts")]
+	protected float m_fRecoveryDelay;
+	
+	// Suppression recovered per second once recovery starts
+	[Attribute("0.1", UIWidgets.Auto, "Suppression recovery speed per second")]
+	protected float m_fRecoveryRate;
 	
 	[Attribute("1", UIWidgets.Auto, "Multiplier for the visual intensity of the suppression effect")]
 	protected float m_fEffectIntensity;
+	
+	// How much mass contributes to suppression
+	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to projectile mass for suppression")]
+	protected float m_fMassMultiplier;
+	
+	// How much speed contributes to suppression
+	[Attribute("0.001", UIWidgets.Auto, "Multiplier applied to projectile speed for suppression")]
+	protected float m_fSpeedMultiplier;
+	
+	// Global scale for suppression added per bullet
+	[Attribute("0.05", UIWidgets.Auto, "Global suppression multiplier per bullet")]
+	protected float m_fBaseSuppressionMultiplier;
+	
+	// Suppression multiplier when in cover (0.5 = -50%)
+	[Attribute("0.5", UIWidgets.Auto, "Suppression multiplier when target is in cover (0.5 = -50%)")]
+	protected float m_fCoverMultiplier;
 
 	//! Projectiles tracked by the system
 	protected ref array<GC_ProjectileComponent> m_aProjectiles = {};
 	
-	//! Player suppression value
+	//! Player suppression value 0-1
 	protected float m_fSuppression = 0;
 	
+	protected int m_iLastUpdateMs = 0;
+	protected int m_iLastSuppressionMs = 0;
 	
 	static GC_SuppressionSystem GetInstance()
 	{
@@ -26,7 +48,7 @@ class GC_SuppressionSystem : GameSystem
 			return null;
 		return GC_SuppressionSystem.Cast(world.FindSystem(GC_SuppressionSystem));
 	}
-	
+
 	override void OnInit()
 	{
 		super.OnInit();
@@ -74,14 +96,11 @@ class GC_SuppressionSystem : GameSystem
 		    // Check if projectile is moving toward the player
 		    float approach = vector.Dot(playerEyePos - projPos, projectile.move.GetVelocity());
 			
-			if (approach > 0)
-				CreateDebugCircle(projPos);
-			
 		    if (approach <= 0)
 		    {
 		        // Projectile is no longer approaching → check distance
 		        float dist = vector.Distance(projPos, playerEyePos);
-				CreateDebugCircle(projPos, Color.GREEN);
+
 				if (dist <= m_fMaxRange)
 				{
 					// Cover check should move to seperate method so it can be reused for hits around a player
@@ -89,15 +108,21 @@ class GC_SuppressionSystem : GameSystem
 					TraceParam tp = MakeTraceParam(playerEyePos - projectile.move.GetVelocity().Normalized() * m_fCoverTraceLength, playerEyePos, TraceFlags.ENTS | TraceFlags.WORLD);
 					tp.Exclude = player;
 					float trace = GetWorld().TraceMove(tp);
-					
+					CreateDebugCircle(projPos, Color.GREEN);
 					AddSuppression(projectile, dist, m_fCoverTraceLength * trace > m_fCoverTraceLength - 0.1);
 				}
-		
+				else
+				{
+					CreateDebugCircle(projPos, Color.PINK);
+				}
+				
 		        // Remove projectile regardless
-				Print("GC | Projectile Remove: " + projectile);
+				//Print("GC | Projectile Remove: " + projectile);
 		        m_aProjectiles.Remove(i);
 		        continue;
 		    }
+			else
+				CreateDebugCircle(projPos);
 		
 		    // Projectile is still approaching → do nothing, keep tracking
 		}
@@ -105,26 +130,64 @@ class GC_SuppressionSystem : GameSystem
 	
 	void AddSuppression(GC_ProjectileComponent projectile, float distance, bool inCover)
 	{
-		Print("GC | AddSuppression: " + projectile);
+		if (!projectile)
+			return;
+	
+		float mass;
+		BaseContainer container = projectile.move.GetComponentSource(projectile.GetOwner());
+		if (container)
+			container.Get("Mass", mass);
+	
+		float speed = projectile.move.GetVelocity().Length();
+	
+		float distanceTerm = 0.0;
+		if (distance <= 0.0)
+			distanceTerm = 1.0;
+		else if (distance < m_fMaxRange)
+			distanceTerm = 1.0 - (distance / m_fMaxRange);
+
+		float addSuppression = 0.0;
+		addSuppression += (mass * m_fMassMultiplier);
+		addSuppression += (speed * m_fSpeedMultiplier);
+		addSuppression *= distanceTerm;
+	
+		// Apply cover multiplier
+		if (inCover)
+			addSuppression = addSuppression * m_fCoverMultiplier;
+	
+		// Global scale
+		addSuppression = addSuppression * m_fBaseSuppressionMultiplier;
 		
-		// increase m_fSuppression based on current value, projectile distance and possibly mass
-		m_fSuppression = Math.Min(m_fMaxSuppression, m_fSuppression + 0);
+		m_iLastSuppressionMs = System.GetTickCount();
 		
-		//BaseContainer container = projectile.move.GetComponentSource(projectile);
+		m_fSuppression = Math.Clamp(m_fSuppression + addSuppression, 0, 1);
+		
+		PrintFormat("GC | AddSuppression mass=%1 speed=%2 dist=%3 cover=%4 add=%5 total=%6",
+			mass, speed, distance, inCover, addSuppression, m_fSuppression);
 	}
 	
-	protected int m_iLastUpdate = 0;
-
 	protected void UpdateSuppression()
 	{
-		// linearily decrease m_fSuppression as time passes
+		int now = System.GetTickCount();
+	
+		float deltaSec = (now - m_iLastUpdateMs) / 1000.0;
+		m_iLastUpdateMs = now;
+	
+		if (m_fSuppression <= 0)
+			return;
+	
+		float sinceSuppSec = (now - m_iLastSuppressionMs) / 1000.0;
+	
+		if (sinceSuppSec < m_fRecoveryDelay)
+			return;
+	
+		// Start linear decay
+		float decay = m_fRecoveryRate * deltaSec;
+		PrintFormat("GC | Recover: " + decay);
 		
-		int ms = System.GetTickCount();
-		m_fSuppression = Math.Max(0, m_fSuppression - 1000 * (ms - m_iLastUpdate));
-		m_iLastUpdate = ms;
-		
-		// update visual effect intensity based on m_fSuppression and m_fSuppressionIntensity
+		m_fSuppression = Math.Clamp(m_fSuppression - decay, 0, 1);
 	}
+
 	
 	void RegisterProjectile(IEntity effect, BaseMuzzleComponent muzzle, IEntity projectile)
 	{
@@ -168,6 +231,11 @@ class GC_SuppressionSystem : GameSystem
 		m_aProjectiles.RemoveItem(projectile);
 	}
 
+	float GetAmount()
+	{
+		return m_fSuppression;
+	}
+	
 	float GetMaxRange()
 	{
 		return m_fMaxRange;
