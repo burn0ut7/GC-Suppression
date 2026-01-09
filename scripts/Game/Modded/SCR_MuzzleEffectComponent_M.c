@@ -14,8 +14,7 @@ modded class SCR_MuzzleEffectComponent
 		// 1. minimum distance (don't suppress yourself or squad members immediately next to you)
 		// 2. maximum angle (don't suppress nearby players who aren't close to your cone of fire)
 		// 3. maximum miss distance (for optimization purposes, if the shot probably passes the player at a large XZ distance, don't bother keeping track)
-		
-		
+
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
 		if (!player)
 			return false;
@@ -29,9 +28,10 @@ modded class SCR_MuzzleEffectComponent
 		
 		// 1. min distance
 	    float distance = vector.Distance(playerPos, muzzlePos);
-	    if (distance < 10)
+	    if (distance < GC_SuppressionSystem.GetInstance().GetMinRange())
 	        return false;
 		
+		//This mostly works. Upclose projectiles will not be tracked due to being outside angle
 		// 2. maximum angle (~25° forward cone)
 		vector toPlayer = playerPos - muzzlePos;
 		if (vector.DotXZ(muzzleDir, toPlayer.Normalized()) < 0.975)

@@ -1,7 +1,10 @@
 class GC_SuppressionSystem : GameSystem
 {
-	[Attribute("10", UIWidgets.Auto, "Max distance range in meters for a bullet to apply suppression")]
+	[Attribute("10", UIWidgets.Auto, "Max distance range in meters for a bullet to apply suppression passing by")]
 	protected float m_fMaxRange;
+	
+	[Attribute("10", UIWidgets.Auto, "Min distance range in meters for a bullet to apply suppression from origin")]
+	protected float m_fMinRange;
 	
 	[Attribute("1", UIWidgets.Auto, "Distance range in meters for a bullet to apply flinch")]
 	protected float m_fFlinchRange;
@@ -75,10 +78,10 @@ class GC_SuppressionSystem : GameSystem
 			.SetAbstract(false)
 			.SetUnique(true)
 			.SetLocation(WorldSystemLocation.Client)
-			.AddPoint(WorldSystemPoint.AfterPhysics);
+			.AddPoint(WorldSystemPoint.Frame);
 	}
 
-	override protected void OnUpdate(ESystemPoint point)
+	override protected void OnUpdate(WorldSystemPoint point)
 	{
 		super.OnUpdate(point);
 		
@@ -123,13 +126,11 @@ class GC_SuppressionSystem : GameSystem
 					TraceParam tp = MakeTraceParam(playerEyePos - projectile.move.GetVelocity().Normalized() * m_fCoverTraceLength, playerEyePos, TraceFlags.ENTS | TraceFlags.WORLD);
 					tp.Exclude = player;
 					float trace = GetWorld().TraceMove(tp);
+					AddSuppression(projectile, dist);
 					CreateDebugCircle(flybyPos, Color.GREEN);
-					AddSuppression(projectile, dist, m_fCoverTraceLength * trace > m_fCoverTraceLength - 0.1);
 				}
 				else
-				{
 					CreateDebugCircle(flybyPos, Color.PINK);
-				}
 				
 				if (dist <= m_fFlinchRange)
 					Flinch();
@@ -141,11 +142,10 @@ class GC_SuppressionSystem : GameSystem
 				CreateDebugCircle(projPos);
 		
 			projectile.position = projPos;
-		    // Projectile is still approaching → do nothing, keep tracking
 		}
 	}
 	
-	void AddSuppression(GC_ProjectileComponent projectile, float distance, bool inCover)
+	void AddSuppression(GC_ProjectileComponent projectile, float distance, float multiplier = 1)
 	{
 		if (!projectile)
 			return;
@@ -168,12 +168,8 @@ class GC_SuppressionSystem : GameSystem
 		addSuppression += (speed * m_fSpeedMultiplier);
 		addSuppression *= distanceTerm;
 	
-		// Apply cover multiplier
-		if (inCover)
-			addSuppression = addSuppression * m_fCoverMultiplier;
-	
 		// Global scale
-		addSuppression = addSuppression * m_fBaseSuppressionMultiplier;
+		addSuppression = addSuppression * m_fBaseSuppressionMultiplier * multiplier;
 		
 		m_fSuppression = Math.Clamp(m_fSuppression + addSuppression, 0, 1);
 		
@@ -181,8 +177,8 @@ class GC_SuppressionSystem : GameSystem
 		
 		UpdateEffect();
 		
-		PrintFormat("GC | AddSuppression mass=%1 speed=%2 dist=%3 cover=%4 add=%5 total=%6",
-			mass, speed, distance, inCover, addSuppression, m_fSuppression);
+		PrintFormat("GC | AddSuppression mass=%1 speed=%2 dist=%3 multiplier=%4 add=%5 total=%6",
+			mass, speed, distance, multiplier, addSuppression, m_fSuppression);
 	}
 	
 	protected void UpdateSuppression()
@@ -254,26 +250,42 @@ class GC_SuppressionSystem : GameSystem
 		
 		m_aProjectiles.Insert(projComp);
 		
-		Print("GC | Projectile Registered: " + projectile);
+		//Print("GC | Projectile Registered: " + projectile);
 	}
 	
 	void UnregisterProjectile(GC_ProjectileComponent projectile)
 	{
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
-		if(player)
+		if(player && projectile)
 		{
 			vector projPos = projectile.GetOwner().GetOrigin();
 			float dist = vector.Distance(projPos, player.GetOrigin());
 		
 			//if (dist <= m_fMaxRange)
-			//Get if entity hit nearby, add extra supression
-			//Should prob be seperate method
+			//	AddSuppression(projectile, dist, 1.25);
+			
+			
+			Print("GC | UnregisterProjectile: " + projectile.GetOwner());
 		}
 		
 		m_aProjectiles.RemoveItem(projectile);
 	}
+	
+	protected bool IsInCover(GC_ProjectileComponent projectile, vector position)
+	{
+		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
+		if(!player)
+			return false;
+		
+		TraceParam tp = MakeTraceParam(position - projectile.move.GetVelocity().Normalized() * m_fCoverTraceLength, position, TraceFlags.ENTS | TraceFlags.WORLD);
+		tp.Exclude = player;
+		
+		float trace = GetWorld().TraceMove(tp);
+		
+		return m_fCoverTraceLength * trace > m_fCoverTraceLength - 0.1;
+	}
 
-	vector GetFlybyPoint(vector currPos, vector prevPos, vector playerPos)
+	protected vector GetFlybyPoint(vector currPos, vector prevPos, vector playerPos)
 	{
 		vector seg = currPos - prevPos;
 		float segLenSq = vector.DistanceSq(prevPos, currPos);
@@ -297,6 +309,11 @@ class GC_SuppressionSystem : GameSystem
 	}
 	
 	float GetMaxRange()
+	{
+		return m_fMaxRange;
+	}
+	
+	float GetMinRange()
 	{
 		return m_fMaxRange;
 	}

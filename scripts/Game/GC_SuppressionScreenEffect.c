@@ -30,22 +30,21 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to blur size")]
 	protected float m_fContrastMultiplier;
 
-	
 	protected ImageWidget m_wVignette;
 	protected ImageWidget m_wFlinch;
 	
-	//Blurriness
+	//Blur
 	protected static bool s_bEnableRadialBlur = false;
 	protected static float s_fBlurriness = 0;
 	protected static float s_fBlurrinessSize = 0.5;
+	
+	protected const string m_sRadialBlurMaterialName = "{E0162CBB3FA4AC16}UI/Materials/GC_ScreenEffects_BlurPP.emat";
+	protected const int m_sRadialBlurPriority = 18;
 	
 	//Color
 	protected static bool s_bEnableColorEffect = false;
 	protected static float s_fContrast = 1;
 	protected static float s_fSaturation = 1;
-	
-	protected const string m_sRadialBlurMaterialName = "{E0162CBB3FA4AC16}UI/Materials/GC_ScreenEffects_BlurPP.emat";
-	protected const int m_sRadialBlurPriority = 18;
 	
 	protected const string m_sColorEffectMaterialName = "{C7CAE196FEBD4469}UI/Materials/GC_ScreenEffects_ColorPP.emat";
 	protected const int m_sColorEffectPriority = 19;
@@ -61,11 +60,6 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 		GetGame().GetWorld().SetCameraPostProcessEffect(CameraId, m_sRadialBlurPriority, PostProcessEffectType.RadialBlur, m_sRadialBlurMaterialName);
 		GetGame().GetWorld().SetCameraPostProcessEffect(CameraId, m_sColorEffectPriority, PostProcessEffectType.Colors, m_sColorEffectMaterialName);
 	}
-
-	//Vignette
-	//Blur
-	//Color
-	//Flinches
 	
 	void Flinch()
 	{
@@ -104,7 +98,7 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 		blurSizeT = Math.Clamp(blurSizeT, 0, 1);
 		s_fBlurrinessSize = Math.Lerp(0.5, m_fBlurSizeMin, blurSizeT);
 		
-		float satT = suppressionAmount * m_fSaturationMultiplier;
+		float satT = suppressionAmount * m_fSaturationMultiplier - 0.1;
 		satT = Math.Clamp(satT, 0, 1);
 		s_fSaturation = Math.Lerp(1.0, m_fSaturationMin, satT);
 		
@@ -129,8 +123,6 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 		if(m_wVignette)
 			m_wVignette.SetMaskProgress(0);
 		
-		ClearFlinch();
-		
 		s_bEnableRadialBlur = false;
 		s_bEnableColorEffect = false;
 		
@@ -139,5 +131,7 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 		
 		s_fContrast = 1;
 		s_fSaturation = 1;
+		
+		ClearFlinch();
 	}
 }
