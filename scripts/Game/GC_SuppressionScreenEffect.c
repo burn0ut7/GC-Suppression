@@ -15,8 +15,8 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to blur size")]
 	protected float m_fBlurSizeMultiplier;
 	
-	[Attribute("0.25", UIWidgets.Auto, "Maxium blur size", params: "0 0.5")]
-	protected float m_fBlurSizeMax;
+	[Attribute("0", UIWidgets.Auto, "Minimum blur size", params: "0 0.5")]
+	protected float m_fBlurSizeMin;
 
 	[Attribute("0", UIWidgets.Auto, "Minimum saturation", params: "0 1")]
 	protected float m_fSaturationMin;
@@ -24,8 +24,8 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to saturation")]
 	protected float m_fSaturationMultiplier;
 	
-	[Attribute("0", UIWidgets.Auto, "Minimum contrast", params: "0 1")]
-	protected float m_fContrastMin;
+	[Attribute("1.5", UIWidgets.Auto, "Minimum contrast", params: "1 2")]
+	protected float m_fContrastMax;
 	
 	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to blur size")]
 	protected float m_fContrastMultiplier;
@@ -35,12 +35,12 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	protected ImageWidget m_wFlinch;
 	
 	//Blurriness
-	protected static bool s_bEnableRadialBlur = true;
+	protected static bool s_bEnableRadialBlur = false;
 	protected static float s_fBlurriness = 0;
-	protected static float s_fBlurrinessSize = 0;
+	protected static float s_fBlurrinessSize = 0.5;
 	
 	//Color
-	protected static bool s_bEnableColorEffect = true;
+	protected static bool s_bEnableColorEffect = false;
 	protected static float s_fContrast = 1;
 	protected static float s_fSaturation = 1;
 	
@@ -54,8 +54,6 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	{
 		m_wVignette = ImageWidget.Cast(m_wRoot.FindAnyWidget("GC_vignette"));
 		m_wFlinch = ImageWidget.Cast(m_wRoot.FindAnyWidget("GC_flinch"));
-		
-		Print("GC | m_wVignette: " + m_wVignette);
 		
 		ChimeraCharacter cc = ChimeraCharacter.Cast(GetGame().GetPlayerController().GetControlledEntity());
 		int CameraId = GetGame().GetWorld().GetCurrentCameraId();
@@ -85,6 +83,9 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	{
 		GetGame().GetCallqueue().Remove(ClearFlinch);
 		
+		if(!m_wFlinch)
+			return;
+		
 		AnimateWidget.StopAllAnimations(m_wFlinch);
 		AnimateWidget.AlphaMask(m_wFlinch, 0, 8)
 			.SetCurve(EAnimationCurve.EASE_OUT_CUBIC);	
@@ -98,16 +99,19 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 		m_wVignette.SetMaskProgress(maskProgress);
 		
 		s_fBlurriness = Math.Clamp(suppressionAmount * m_fBlurMultiplier * m_fBlurMax, 0, m_fBlurMax);
-		s_fBlurrinessSize = Math.Clamp(suppressionAmount * m_fBlurSizeMultiplier * m_fBlurSizeMax, 0, m_fBlurSizeMax);
 
+		float blurSizeT = suppressionAmount * m_fBlurSizeMultiplier;
+		blurSizeT = Math.Clamp(blurSizeT, 0, 1);
+		s_fBlurrinessSize = Math.Lerp(0.5, m_fBlurSizeMin, blurSizeT);
+		
 		float satT = suppressionAmount * m_fSaturationMultiplier;
 		satT = Math.Clamp(satT, 0, 1);
 		s_fSaturation = Math.Lerp(1.0, m_fSaturationMin, satT);
 		
 		float conT = suppressionAmount * m_fContrastMultiplier;
 		conT = Math.Clamp(conT, 0, 1);
-		s_fContrast = Math.Lerp(1.0, m_fContrastMin, conT);
-		
+		s_fContrast = Math.Lerp(1.0, m_fContrastMax, conT);
+
 		if(suppressionAmount <= 0)
 		{
 			s_bEnableRadialBlur = false;
@@ -118,5 +122,22 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 			s_bEnableRadialBlur = true;
 			s_bEnableColorEffect = true;
 		}
+	}
+	
+	void Disable()
+	{
+		if(m_wVignette)
+			m_wVignette.SetMaskProgress(0);
+		
+		ClearFlinch();
+		
+		s_bEnableRadialBlur = false;
+		s_bEnableColorEffect = false;
+		
+		s_fBlurriness = 0;
+		s_fBlurrinessSize = 0.5;
+		
+		s_fContrast = 1;
+		s_fSaturation = 1;
 	}
 }

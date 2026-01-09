@@ -1,5 +1,7 @@
 ColorsEffect {
  Enabled 1
+ Contrast 1
+ Saturation 1
  Refs {
   "Enabled"
   "GC_SuppressionScreenEffect.s_bEnableColorEffect"

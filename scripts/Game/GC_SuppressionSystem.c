@@ -50,6 +50,22 @@ class GC_SuppressionSystem : GameSystem
 	override void OnInit()
 	{
 		super.OnInit();
+		
+		SCR_PlayerController pc = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+		if (!pc)
+			return;
+
+		pc.m_OnControlledEntityChanged.Insert(OnControlledEntityChanged);
+	}
+	
+	void OnControlledEntityChanged(IEntity from, IEntity to)
+	{
+		m_fSuppression = 0;
+		
+		SCR_ScreenEffectsManager sem = SCR_ScreenEffectsManager.GetScreenEffectsDisplay();
+		GC_SuppressionScreenEffect sse = GC_SuppressionScreenEffect.Cast(sem.GetEffect(GC_SuppressionScreenEffect));
+		if(sse)
+			sse.Disable();
 	}
 
 	override static void InitInfo(WorldSystemInfo outInfo)
