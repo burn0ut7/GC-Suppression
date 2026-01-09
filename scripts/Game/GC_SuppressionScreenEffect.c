@@ -1,5 +1,11 @@
 class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 {
+	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to vignette mask")]
+	protected float m_fVignetteMultiplier;
+	
+	[Attribute("0.7", UIWidgets.Auto, "Maxium mask for vignette", params: "0 1")]
+	protected float m_fVignetteMax;
+	
 	protected ImageWidget m_fVignette;
 	
 	//Blurriness
@@ -28,21 +34,18 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 		s_bEnableRadialBlur = false;
 		s_fBlurriness = 0;
 		s_fBlurrinessSize = 0;
-		//Vignette
-		//Blur
-		//Color
-		//Flinches
 	}
-	
-	override void UpdateEffect(float timeSlice)
+
+	//Vignette
+	//Blur
+	//Color
+	//Flinches
+
+	void UpdateSuppresion()
 	{
+		float suppressionAmount = GC_SuppressionSystem.GetInstance().GetAmount();
 		
-		float supressionAmount = GC_SuppressionSystem.GetInstance().GetAmount();
-		
-		//Print("GC | UpdateEffect: " + supressionAmount);
-		
-		//m_fVignette.SetOpacity(supressionAmount);
-		m_fVignette.SetMaskProgress(supressionAmount);
-		
+		float maskProgress = Math.Clamp(suppressionAmount * m_fVignetteMultiplier * m_fVignetteMax, 0, m_fVignetteMax);
+		m_fVignette.SetMaskProgress(maskProgress);
 	}
 }

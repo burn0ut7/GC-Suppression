@@ -158,9 +158,11 @@ class GC_SuppressionSystem : GameSystem
 		// Global scale
 		addSuppression = addSuppression * m_fBaseSuppressionMultiplier;
 		
+		m_fSuppression = Math.Clamp(m_fSuppression + addSuppression, 0, 1);
+		
 		m_iLastSuppressionMs = System.GetTickCount();
 		
-		m_fSuppression = Math.Clamp(m_fSuppression + addSuppression, 0, 1);
+		UpdateEffect();
 		
 		PrintFormat("GC | AddSuppression mass=%1 speed=%2 dist=%3 cover=%4 add=%5 total=%6",
 			mass, speed, distance, inCover, addSuppression, m_fSuppression);
@@ -181,11 +183,21 @@ class GC_SuppressionSystem : GameSystem
 		if (sinceSuppSec < m_fRecoveryDelay)
 			return;
 	
-		// Start linear decay
 		float decay = m_fRecoveryRate * deltaSec;
-		PrintFormat("GC | Recover: " + decay);
-		
+
 		m_fSuppression = Math.Clamp(m_fSuppression - decay, 0, 1);
+		
+		UpdateEffect();
+		
+		PrintFormat("GC | Recover: " + decay);
+	}
+	
+	protected void UpdateEffect()
+	{
+		SCR_ScreenEffectsManager sem = SCR_ScreenEffectsManager.GetScreenEffectsDisplay();
+		GC_SuppressionScreenEffect sse = GC_SuppressionScreenEffect.Cast(sem.GetEffect(GC_SuppressionScreenEffect));
+		if(sse)
+			sse.UpdateSuppresion();
 	}
 
 	
