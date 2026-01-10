@@ -1,36 +1,39 @@
 class GC_SuppressionSystem : GameSystem
 {
-	[Attribute("10", UIWidgets.Auto, "Max distance range in meters for a bullet to apply suppression passing by")]
+	[Attribute("10", UIWidgets.Auto, "Max distance range in meters for a bullet to apply suppression passing by", params: "0 inf")]
 	protected float m_fMaxRange;
 	
-	[Attribute("10", UIWidgets.Auto, "Min distance range in meters for a bullet to apply suppression from origin")]
+	[Attribute("10", UIWidgets.Auto, "Min distance range in meters for a bullet to apply suppression from origin", params: "0 inf")]
 	protected float m_fMinRange;
 	
-	[Attribute("1", UIWidgets.Auto, "Distance range in meters for a bullet to apply flinch")]
+	[Attribute("1", UIWidgets.Auto, "Distance range in meters for a bullet to apply flinch", params: "0 inf")]
 	protected float m_fFlinchRange;
 	
-	[Attribute("0.025", UIWidgets.Auto, "Random percent angle for aiming when flinched")]
-	protected float m_fFlinchRandom;
+	[Attribute("1", UIWidgets.Auto, "Magnitude of screenshake when flinched. 0 = off", params: "0 inf")]
+	protected float m_fFlinchShakeMultiplier;
+	
+	[Attribute("0.5", UIWidgets.Auto, "Magnitude of screenshake when fully suppressed.", params: "0 inf")]
+	protected float m_fFlinchShakeSuppressedMultiplier;
 
-	[Attribute("5.0", UIWidgets.Auto, "Distance up to which cover is recognized (meters)")]
+	[Attribute("5.0", UIWidgets.Auto, "Distance up to which cover is recognized (meters)", params: "0 inf")]
 	protected float m_fCoverTraceLength;
 	
-	[Attribute("5.0", UIWidgets.Auto, "Seconds of no new suppression before recovery starts")]
+	[Attribute("5.0", UIWidgets.Auto, "Seconds of no new suppression before recovery starts", params: "0 inf")]
 	protected float m_fRecoveryDelay;
 	
-	[Attribute("0.2", UIWidgets.Auto, "Suppression recovery speed per second")]
+	[Attribute("0.2", UIWidgets.Auto, "Suppression recovery speed per second", params: "0 1")]
 	protected float m_fRecoveryRate;
 
-	[Attribute("2.0", UIWidgets.Auto, "Multiplier applied to projectile mass for suppression")]
+	[Attribute("2.0", UIWidgets.Auto, "Multiplier applied to projectile mass for suppression", params: "0 inf")]
 	protected float m_fMassMultiplier;
 	
-	[Attribute("0.001", UIWidgets.Auto, "Multiplier applied to projectile speed for suppression")]
+	[Attribute("0.001", UIWidgets.Auto, "Multiplier applied to projectile speed for suppression", params: "0 inf")]
 	protected float m_fSpeedMultiplier;
 	
-	[Attribute("0.035", UIWidgets.Auto, "Global suppression multiplier per bullet")]
+	[Attribute("0.035", UIWidgets.Auto, "Global suppression multiplier per bullet", params: "0 inf")]
 	protected float m_fBaseSuppressionMultiplier;
 	
-	[Attribute("0.5", UIWidgets.Auto, "Suppression multiplier when target is in cover (0.5 = -50%)")]
+	[Attribute("0.5", UIWidgets.Auto, "Suppression multiplier when target is in cover (0.5 = -50%)", params: "0 inf")]
 	protected float m_fCoverMultiplier;
 
 	//! Projectiles tracked by the system
@@ -243,27 +246,21 @@ class GC_SuppressionSystem : GameSystem
 		if (sse)
 			sse.Flinch();
 		
-		if (m_fFlinchRandom == 0)
-			return;
 		
-		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
-		CharacterControllerComponent cc = CharacterControllerComponent.Cast(player.FindComponent(CharacterControllerComponent));
-
-		if (!cc.GetInputContext().IsWeaponADS())
-			return;
-		
-		vector angles = cc.GetInputContext().GetAimingAngles();
-
-		float randomX = Math.RandomFloatInclusive(1 - m_fFlinchRandom, 1 + m_fFlinchRandom);
-		float randomY = Math.RandomFloatInclusive(1 - m_fFlinchRandom, 1 + m_fFlinchRandom);
-		float randomZ = Math.RandomFloatInclusive(1 - m_fFlinchRandom, 1 + m_fFlinchRandom);
-		
-		angles[0] = angles[0] * randomX;
-		angles[1] = angles[1] * randomY;
-		angles[2] = angles[2] * randomZ;
-
-		cc.GetInputContext().SetAimingAngles( angles );
-		cc.GetInputContext().SetHeadingAngle( angles[0] );
+		if (m_fFlinchShakeMultiplier > 0)
+		{
+			float suppressionMulti = 1.0 + m_fSuppression * m_fFlinchShakeSuppressedMultiplier;
+	
+			float magnitude = m_fFlinchShakeMultiplier * suppressionMulti;
+			
+			ScreenShake(magnitude);
+		}
+	}
+	
+	protected void ScreenShake(float magnitude = 1, float inTime = 0.01, float sustainTime = 0.1, float outTime = 0.24)
+	{
+		CameraBase camera = GetGame().GetCameraManager().CurrentCamera();
+		SCR_CameraShakeManagerComponent.AddCameraShake(magnitude, magnitude, inTime, sustainTime, outTime);
 	}
 	
 	void RegisterProjectile(IEntity projectile)
