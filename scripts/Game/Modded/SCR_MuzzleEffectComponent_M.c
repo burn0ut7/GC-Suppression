@@ -3,7 +3,7 @@ modded class SCR_MuzzleEffectComponent
 	override void OnFired(IEntity effectEntity, BaseMuzzleComponent muzzle, IEntity projectileEntity)
 	{
 		super.OnFired(effectEntity, muzzle, projectileEntity);
-
+		
 		if (ShouldInsert(muzzle))
 			GC_SuppressionSystem.GetInstance().RegisterProjectile(effectEntity, muzzle, projectileEntity);
 	}

@@ -3,7 +3,7 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to vignette mask")]
 	protected float m_fVignetteMultiplier;
 	
-	[Attribute("0.7", UIWidgets.Auto, "Maxium mask for vignette", params: "0 1")]
+	[Attribute("0.6", UIWidgets.Auto, "Maxium mask for vignette", params: "0 1")]
 	protected float m_fVignetteMax;
 	
 	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to blur intensivty")]
@@ -64,11 +64,11 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	void Flinch()
 	{
 		m_wFlinch.SetMaskProgress(0);
+		
 		AnimateWidget.StopAllAnimations(m_wFlinch);
 		AnimateWidget.AlphaMask(m_wFlinch, 0.9, 8)
 			.SetCurve(EAnimationCurve.EASE_IN_CUBIC);
 		
-				
 		GetGame().GetCallqueue().Remove(ClearFlinch);
 		GetGame().GetCallqueue().CallLater(ClearFlinch, 120, false);
 	}

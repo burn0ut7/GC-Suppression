@@ -15,11 +15,8 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("5.0", UIWidgets.Auto, "Seconds of no new suppression before recovery starts")]
 	protected float m_fRecoveryDelay;
 	
-	[Attribute("0.1", UIWidgets.Auto, "Suppression recovery speed per second")]
+	[Attribute("0.2", UIWidgets.Auto, "Suppression recovery speed per second")]
 	protected float m_fRecoveryRate;
-	
-	[Attribute("1", UIWidgets.Auto, "Multiplier for the visual intensity of the suppression effect")]
-	protected float m_fEffectIntensity;
 
 	[Attribute("2.0", UIWidgets.Auto, "Multiplier applied to projectile mass for suppression")]
 	protected float m_fMassMultiplier;
@@ -27,7 +24,7 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("0.001", UIWidgets.Auto, "Multiplier applied to projectile speed for suppression")]
 	protected float m_fSpeedMultiplier;
 	
-	[Attribute("0.075", UIWidgets.Auto, "Global suppression multiplier per bullet")]
+	[Attribute("0.035", UIWidgets.Auto, "Global suppression multiplier per bullet")]
 	protected float m_fBaseSuppressionMultiplier;
 	
 	[Attribute("0.5", UIWidgets.Auto, "Suppression multiplier when target is in cover (0.5 = -50%)")]
@@ -105,7 +102,6 @@ class GC_SuppressionSystem : GameSystem
 		
 		for (int i = m_aProjectiles.Count() - 1; i >= 0; i--)
 		{
-		
 			GC_ProjectileComponent projectile = m_aProjectiles[i];
 			
 		    vector projPos = projectile.GetOwner().GetOrigin();
@@ -115,7 +111,7 @@ class GC_SuppressionSystem : GameSystem
 			
 		    if (approach <= 0)
 		    {
-		        // Projectile is no longer approaching → check distance
+				// Projectile is no longer approaching → check distance
 				vector flybyPos = GetFlybyPoint(projPos, projectile.position, playerEyePos);
 				float dist = vector.Distance(flybyPos, playerEyePos);
 				
@@ -149,13 +145,15 @@ class GC_SuppressionSystem : GameSystem
 	{
 		if (!projectile)
 			return;
-	
-		float mass;
-		BaseContainer container = projectile.move.GetComponentSource(projectile.GetOwner());
-		if (container)
-			container.Get("Mass", mass);
-	
-		float speed = projectile.move.GetVelocity().Length();
+
+		float mass = GetMass(projectile);
+		if(!mass)
+			return;
+		
+		// fucky because ondelete gets rid of move component instance
+		float speed = 300;
+		if(projectile.move)
+			speed = projectile.move.GetVelocity().Length();
 	
 		float distanceTerm = 0.0;
 		if (distance <= 0.0)
@@ -177,8 +175,35 @@ class GC_SuppressionSystem : GameSystem
 		
 		UpdateEffect();
 		
-		PrintFormat("GC | AddSuppression mass=%1 speed=%2 dist=%3 multiplier=%4 add=%5 total=%6",
-			mass, speed, distance, multiplier, addSuppression, m_fSuppression);
+		PrintFormat("GC | AddSuppression mass=%1 speed=%2 dist=%3 multiplier=%4 add=%5 total=%6 porj=%7",
+			mass, speed, distance, multiplier, addSuppression, m_fSuppression, projectile.GetOwner());
+	}
+	
+	//This is also fucky where again movecomp instance is gone when under going delete
+	protected float GetMass(GC_ProjectileComponent projectile)
+	{
+		EntityPrefabData pefab = projectile.GetOwner().GetPrefabData();
+
+		BaseContainer pefabContainer = pefab.GetPrefab();
+
+		BaseContainerList components = pefabContainer.GetObjectArray("components");
+
+		BaseContainer container;
+		for (int c = components.Count() - 1; c >= 0; c--)
+		{
+			container = components.Get(c);
+			typename type = container.GetClassName().ToType();
+			
+			if (type && type.IsInherited(ProjectileMoveComponent))
+				break;
+			
+			container = null;
+		}
+		
+		float mass;
+		container.Get("Mass", mass);
+		
+		return mass;
 	}
 	
 	protected void UpdateSuppression()
@@ -261,11 +286,10 @@ class GC_SuppressionSystem : GameSystem
 			vector projPos = projectile.GetOwner().GetOrigin();
 			float dist = vector.Distance(projPos, player.GetOrigin());
 		
-			//if (dist <= m_fMaxRange)
-			//	AddSuppression(projectile, dist, 1.25);
+			if (dist <= m_fMaxRange)
+				AddSuppression(projectile, dist, 1.5);
 			
-			
-			Print("GC | UnregisterProjectile: " + projectile.GetOwner());
+			//Print("GC | UnregisterProjectile: " + projectile.GetOwner());
 		}
 		
 		m_aProjectiles.RemoveItem(projectile);
