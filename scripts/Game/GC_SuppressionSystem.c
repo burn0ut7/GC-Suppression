@@ -75,7 +75,7 @@ class GC_SuppressionSystem : GameSystem
 			.SetAbstract(false)
 			.SetUnique(true)
 			.SetLocation(WorldSystemLocation.Client)
-			.AddPoint(WorldSystemPoint.Frame);
+			.AddPoint(WorldSystemPoint.FixedFrame);
 	}
 
 	override protected void OnUpdate(WorldSystemPoint point)
@@ -251,7 +251,7 @@ class GC_SuppressionSystem : GameSystem
 			sse.Flinch();
 	}
 	
-	void RegisterProjectile(IEntity effect, BaseMuzzleComponent muzzle, IEntity projectile)
+	void RegisterProjectile(IEntity projectile)
 	{
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
 		if (!player)
@@ -261,17 +261,18 @@ class GC_SuppressionSystem : GameSystem
 		if (!projComp)
 			return;
 		
+		if (m_aProjectiles.Contains(projComp))
+			return;
+		
 		if (!projComp.IsEnabled())
 			return;
 		
 		ProjectileMoveComponent moveComp = ProjectileMoveComponent.Cast(projectile.FindComponent(ProjectileMoveComponent));
 		if (!moveComp)
 			return;
-		
-		projComp.effect = effect;
-		projComp.muzzle = muzzle;
+
 		projComp.move = moveComp;
-		projComp.position = muzzle.GetOwner().GetOrigin();
+		projComp.position = projectile.GetOrigin();
 		
 		m_aProjectiles.Insert(projComp);
 		
