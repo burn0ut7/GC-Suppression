@@ -107,7 +107,7 @@ class GC_SuppressionSystem : GameSystem
 		{
 			GC_ProjectileComponent projectile = m_aProjectiles[i];
 			
-		    vector projPos = projectile.GetOwner().GetOrigin();
+		    vector projPos = projectile.entity.GetOrigin();
 		
 		    // Check if projectile is moving toward the player
 		    float approach = vector.Dot(playerEyePos - projPos, projectile.move.GetVelocity());
@@ -120,8 +120,6 @@ class GC_SuppressionSystem : GameSystem
 				
 				if (dist <= m_fMaxRange)
 				{
-					// Cover check should move to seperate method so it can be reused for hits around a player
-					// "perfect shot" projectile trace towards player head to check whether it would have been in some kind of cover
 					float multi = 1;
 					if(IsInCover(projectile))
 						multi -= m_fCoverMultiplier;
@@ -155,10 +153,8 @@ class GC_SuppressionSystem : GameSystem
 			return;
 		
 		// fucky because ondelete gets rid of move component instance
-		float speed = 300;
-		if (projectile.move)
-			speed = projectile.move.GetVelocity().Length();
-	
+		float speed = projectile.move.GetVelocity().Length();
+
 		float distanceTerm = 0.0;
 		if (distance <= 0.0)
 			distanceTerm = 1.0;
@@ -180,13 +176,13 @@ class GC_SuppressionSystem : GameSystem
 		UpdateEffect();
 		
 		PrintFormat("GC | AddSuppression mass=%1 speed=%2 dist=%3 multiplier=%4 add=%5 total=%6 porj=%7",
-			mass, speed, distance, multiplier, addSuppression, m_fSuppression, projectile.GetOwner());
+			mass, speed, distance, multiplier, addSuppression, m_fSuppression, projectile.entity);
 	}
 	
 	//This is also fucky where again movecomp instance is gone when under going delete
 	protected float GetMass(GC_ProjectileComponent projectile)
 	{
-		EntityPrefabData pefab = projectile.GetOwner().GetPrefabData();
+		EntityPrefabData pefab = projectile.entity.GetPrefabData();
 
 		BaseContainer pefabContainer = pefab.GetPrefab();
 
@@ -290,6 +286,7 @@ class GC_SuppressionSystem : GameSystem
 		if (!moveComp)
 			return;
 
+		projComp.entity = projectile;
 		projComp.move = moveComp;
 		projComp.position = projectile.GetOrigin();
 		
@@ -303,12 +300,12 @@ class GC_SuppressionSystem : GameSystem
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
 		
 
-		if (player && projectile)
+		if (player && projectile.entity)
 		{
 			SCR_ChimeraCharacter cc = SCR_ChimeraCharacter.Cast(player);
 			vector playerEyePos = cc.EyePosition();
 			
-			vector projPos = projectile.GetOwner().GetOrigin();
+			vector projPos = projectile.entity.GetOrigin();
 			float dist = vector.Distance(projPos, playerEyePos);
 		
 			if (dist <= m_fMaxRange)
@@ -326,6 +323,7 @@ class GC_SuppressionSystem : GameSystem
 		m_aProjectiles.RemoveItem(projectile);
 	}
 	
+	//Player is consider in cover if they can't be hit by a bullet
 	protected bool IsInCover(GC_ProjectileComponent projectile)
 	{
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
@@ -359,9 +357,8 @@ class GC_SuppressionSystem : GameSystem
 		float fraction = GetGame().GetWorld().TraceMove(tp);
 		
 		m_shapes.Insert(Shape.Create(ShapeType.LINE, Color.RED, ShapeFlags.DEFAULT, start, end));
-		PrintFormat("GC | IsInCover: %1 - %2", fraction, tp.ColliderName);
+		//PrintFormat("GC | IsInCover: %1 - %2", fraction, tp.ColliderName);
 		
-		// If fraction < 1, we hit something before full length → in cover
 		return fraction < 1.0;
 	}
 

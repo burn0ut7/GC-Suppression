@@ -7,8 +7,7 @@ class GC_ProjectileComponent : ScriptComponent
 	[Attribute("1", UIWidgets.Auto, "Is suppression enabled for this projectile")]
 	protected bool m_isSuppressionEnabled;
 	
-	IEntity effect;
-	BaseMuzzleComponent muzzle;
+	IEntity entity;
 	ProjectileMoveComponent move;
 	vector position;
 	
