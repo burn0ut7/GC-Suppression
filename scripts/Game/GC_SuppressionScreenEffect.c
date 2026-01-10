@@ -99,7 +99,9 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 		s_fBlurrinessSize = Math.Lerp(0.5, m_fBlurSizeMin, blurSizeT);
 		
 		// -0.1 to give 10% buffer to saturation so it doesn't apply instantly from 1 shot
-		float satT = suppressionAmount * m_fSaturationMultiplier - 0.1;
+		float satT = (suppressionAmount - 0.1) / 0.9;
+		satT = Math.Clamp(satT, 0, 1);
+		satT *= m_fSaturationMultiplier;
 		satT = Math.Clamp(satT, 0, 1);
 		s_fSaturation = Math.Lerp(1.0, m_fSaturationMin, satT);
 		

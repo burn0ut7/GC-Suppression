@@ -9,7 +9,10 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("1", UIWidgets.Auto, "Distance range in meters for a bullet to apply flinch")]
 	protected float m_fFlinchRange;
 	
-	[Attribute("50", UIWidgets.Auto, "Distance up to which cover is recognized (meters)")]
+	[Attribute("0.025", UIWidgets.Auto, "Random percent angle for aiming when flinched")]
+	protected float m_fFlinchRandom;
+
+	[Attribute("5.0", UIWidgets.Auto, "Distance up to which cover is recognized (meters)")]
 	protected float m_fCoverTraceLength;
 	
 	[Attribute("5.0", UIWidgets.Auto, "Seconds of no new suppression before recovery starts")]
@@ -64,7 +67,7 @@ class GC_SuppressionSystem : GameSystem
 		
 		SCR_ScreenEffectsManager sem = SCR_ScreenEffectsManager.GetScreenEffectsDisplay();
 		GC_SuppressionScreenEffect sse = GC_SuppressionScreenEffect.Cast(sem.GetEffect(GC_SuppressionScreenEffect));
-		if(sse)
+		if (sse)
 			sse.Disable();
 	}
 
@@ -119,10 +122,11 @@ class GC_SuppressionSystem : GameSystem
 				{
 					// Cover check should move to seperate method so it can be reused for hits around a player
 					// "perfect shot" projectile trace towards player head to check whether it would have been in some kind of cover
-					TraceParam tp = MakeTraceParam(playerEyePos - projectile.move.GetVelocity().Normalized() * m_fCoverTraceLength, playerEyePos, TraceFlags.ENTS | TraceFlags.WORLD);
-					tp.Exclude = player;
-					float trace = GetWorld().TraceMove(tp);
-					AddSuppression(projectile, dist);
+					float multi = 1;
+					if(IsInCover(projectile))
+						multi -= m_fCoverMultiplier;
+					
+					AddSuppression(projectile, dist, multi);
 					CreateDebugCircle(flybyPos, Color.GREEN);
 				}
 				else
@@ -141,18 +145,18 @@ class GC_SuppressionSystem : GameSystem
 		}
 	}
 	
-	void AddSuppression(GC_ProjectileComponent projectile, float distance, float multiplier = 1)
+	protected void AddSuppression(GC_ProjectileComponent projectile, float distance, float multiplier = 1)
 	{
 		if (!projectile)
 			return;
 
 		float mass = GetMass(projectile);
-		if(!mass)
+		if (!mass)
 			return;
 		
 		// fucky because ondelete gets rid of move component instance
 		float speed = 300;
-		if(projectile.move)
+		if (projectile.move)
 			speed = projectile.move.GetVelocity().Length();
 	
 		float distanceTerm = 0.0;
@@ -232,23 +236,38 @@ class GC_SuppressionSystem : GameSystem
 	{
 		SCR_ScreenEffectsManager sem = SCR_ScreenEffectsManager.GetScreenEffectsDisplay();
 		GC_SuppressionScreenEffect sse = GC_SuppressionScreenEffect.Cast(sem.GetEffect(GC_SuppressionScreenEffect));
-		if(sse)
+		if (sse)
 			sse.UpdateSuppresion();
 	}
 	
 	protected void Flinch()
 	{
-		//Aim effect. kind of wonkie
-		//IEntity player = GetGame().GetPlayerController().GetControlledEntity();
-		//CharacterControllerComponent cc = CharacterControllerComponent.Cast(player.FindComponent(CharacterControllerComponent));
-		//vector dir = "45 45 0";
-		//cc.GetInputContext().SetAimingAngles( dir );
-		//cc.GetInputContext().SetHeadingAngle( 45 );
-
 		SCR_ScreenEffectsManager sem = SCR_ScreenEffectsManager.GetScreenEffectsDisplay();
 		GC_SuppressionScreenEffect sse = GC_SuppressionScreenEffect.Cast(sem.GetEffect(GC_SuppressionScreenEffect));
-		if(sse)
+		if (sse)
 			sse.Flinch();
+		
+		if (m_fFlinchRandom == 0)
+			return;
+		
+		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
+		CharacterControllerComponent cc = CharacterControllerComponent.Cast(player.FindComponent(CharacterControllerComponent));
+
+		if (!cc.GetInputContext().IsWeaponADS())
+			return;
+		
+		vector angles = cc.GetInputContext().GetAimingAngles();
+
+		float randomX = Math.RandomFloatInclusive(1 - m_fFlinchRandom, 1 + m_fFlinchRandom);
+		float randomY = Math.RandomFloatInclusive(1 - m_fFlinchRandom, 1 + m_fFlinchRandom);
+		float randomZ = Math.RandomFloatInclusive(1 - m_fFlinchRandom, 1 + m_fFlinchRandom);
+		
+		angles[0] = angles[0] * randomX;
+		angles[1] = angles[1] * randomY;
+		angles[2] = angles[2] * randomZ;
+
+		cc.GetInputContext().SetAimingAngles( angles );
+		cc.GetInputContext().SetHeadingAngle( angles[0] );
 	}
 	
 	void RegisterProjectile(IEntity projectile)
@@ -282,32 +301,68 @@ class GC_SuppressionSystem : GameSystem
 	void UnregisterProjectile(GC_ProjectileComponent projectile)
 	{
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
-		if(player && projectile)
+		
+
+		if (player && projectile)
 		{
+			SCR_ChimeraCharacter cc = SCR_ChimeraCharacter.Cast(player);
+			vector playerEyePos = cc.EyePosition();
+			
 			vector projPos = projectile.GetOwner().GetOrigin();
-			float dist = vector.Distance(projPos, player.GetOrigin());
+			float dist = vector.Distance(projPos, playerEyePos);
 		
 			if (dist <= m_fMaxRange)
-				AddSuppression(projectile, dist, 1.5);
-			
+			{
+				float multi = 1.5;
+				if(IsInCover(projectile))
+					multi -= m_fCoverMultiplier;
+				
+				AddSuppression(projectile, dist, multi);
+			}
+	
 			//Print("GC | UnregisterProjectile: " + projectile.GetOwner());
 		}
 		
 		m_aProjectiles.RemoveItem(projectile);
 	}
 	
-	protected bool IsInCover(GC_ProjectileComponent projectile, vector position)
+	protected bool IsInCover(GC_ProjectileComponent projectile)
 	{
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
-		if(!player)
+		if (!player)
 			return false;
 		
-		TraceParam tp = MakeTraceParam(position - projectile.move.GetVelocity().Normalized() * m_fCoverTraceLength, position, TraceFlags.ENTS | TraceFlags.WORLD);
+		SCR_ChimeraCharacter cc = SCR_ChimeraCharacter.Cast(player);
+		vector playerEyePos = cc.EyePosition();
+		
+		if (!projectile)
+			return false;
+		
+		if (!projectile.move)
+			return false;
+		
+		vector velocity = projectile.move.GetVelocity();
+		if (velocity.LengthSq() <= 0.0001)
+			return false;
+		
+		// Direction FROM player TOWARD shooter (opposite bullet direction)
+		vector dir = -velocity;
+		dir.Normalize();
+		
+		vector start = playerEyePos;
+		vector end = start + dir * m_fCoverTraceLength;
+		
+		// Trace from eyes toward where the bullet came from
+		TraceParam tp = MakeTraceParam(start, end, TraceFlags.ENTS | TraceFlags.WORLD);
 		tp.Exclude = player;
 		
-		float trace = GetWorld().TraceMove(tp);
+		float fraction = GetGame().GetWorld().TraceMove(tp);
 		
-		return m_fCoverTraceLength * trace > m_fCoverTraceLength - 0.1;
+		m_shapes.Insert(Shape.Create(ShapeType.LINE, Color.RED, ShapeFlags.DEFAULT, start, end));
+		PrintFormat("GC | IsInCover: %1 - %2", fraction, tp.ColliderName);
+		
+		// If fraction < 1, we hit something before full length → in cover
+		return fraction < 1.0;
 	}
 
 	protected vector GetFlybyPoint(vector currPos, vector prevPos, vector playerPos)
@@ -347,7 +402,7 @@ class GC_SuppressionSystem : GameSystem
 	protected ref array<ref Shape> m_shapes = {};
 	protected void CreateDebugCircle(vector position, int color = Color.RED, bool clear = false)
 	{
-		if(clear)
+		if (clear)
 			m_shapes.Clear();
 		
 		m_shapes.Insert(Shape.CreateSphere(color, ShapeFlags.DEFAULT, position, 0.2));
