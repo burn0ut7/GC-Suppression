@@ -1,4 +1,5 @@
 RadialBlurEffect {
+ Enabled 1
  PowerX 0
  PowerY 0
  SizeX 0

@@ -1,0 +1,13 @@
+ChromAberEffect {
+ Enabled 1
+ PowerX 0.05
+ PowerY 0.05
+ Refs {
+  "Enabled"
+  "GC_SuppressionScreenEffect.s_bEnableChromAberEffect"
+  "PowerX"
+  "GC_SuppressionScreenEffect.s_fChromAber"
+  "PowerY"
+  "GC_SuppressionScreenEffect.s_fChromAber"
+ }
+}
