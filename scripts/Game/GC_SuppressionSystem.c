@@ -33,6 +33,9 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("0.035", UIWidgets.Auto, "Global suppression multiplier per bullet", params: "0 inf")]
 	protected float m_fBaseSuppressionMultiplier;
 	
+	[Attribute("1.25", UIWidgets.Auto, "Suppression multiplier per bullet hitting near the player", params: "0 inf")]
+	protected float m_fHitSuppressionMultiplier;
+	
 	[Attribute("0.5", UIWidgets.Auto, "Suppression multiplier when target is in cover (0.5 = -50%)", params: "0 inf")]
 	protected float m_fCoverMultiplier;
 
@@ -307,7 +310,7 @@ class GC_SuppressionSystem : GameSystem
 		
 			if (dist <= m_fMaxRange)
 			{
-				float multi = 1.5;
+				float multi = m_fHitSuppressionMultiplier;
 				if(IsInCover(projectile))
 					multi -= m_fCoverMultiplier;
 				
