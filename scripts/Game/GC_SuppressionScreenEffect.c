@@ -62,7 +62,6 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	protected const string m_sChromAberMaterialName = "{07258569ACAB792D}UI/Materials/GC_ScreenEffects_ChromAberPP.emat";
 	protected const int m_sChromAberPriority = 19;
 	
-	
 	override void DisplayStartDraw(IEntity owner)
 	{
 		m_wVignette = ImageWidget.Cast(m_wRoot.FindAnyWidget("GC_vignette"));

@@ -18,7 +18,7 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("5.0", UIWidgets.Auto, "Distance up to which cover is recognized (meters)", params: "0 inf")]
 	protected float m_fCoverTraceLength;
 	
-	[Attribute("5.0", UIWidgets.Auto, "Seconds of no new suppression before recovery starts", params: "0 inf")]
+	[Attribute("7.5", UIWidgets.Auto, "Seconds of no new suppression before recovery starts", params: "0 inf")]
 	protected float m_fRecoveryDelay;
 	
 	[Attribute("0.2", UIWidgets.Auto, "Suppression recovery speed per second", params: "0 1")]
@@ -30,7 +30,7 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("0.001", UIWidgets.Auto, "Multiplier applied to projectile speed for suppression", params: "0 inf")]
 	protected float m_fSpeedMultiplier;
 	
-	[Attribute("0.035", UIWidgets.Auto, "Global suppression multiplier per bullet", params: "0 inf")]
+	[Attribute("0.04", UIWidgets.Auto, "Global suppression multiplier per bullet", params: "0 inf")]
 	protected float m_fBaseSuppressionMultiplier;
 	
 	[Attribute("1.25", UIWidgets.Auto, "Suppression multiplier per bullet hitting near the player", params: "0 inf")]

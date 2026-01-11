@@ -19,11 +19,11 @@ FrameWidgetClass {
       HorizontalAlign 3
       VerticalAlign 3
      }
-     Opacity 0.98
+     Opacity 0.95
      Color 0 0 0 1
      Size 1920 1080
      Mask "{77CF24D5CA2DB63F}UI/Textures/ScreenEffects/Suppression/supressionVignette2.edds"
-     "Transition width" 0.7
+     "Transition width" 0.65
      Progress 0
     }
     ImageWidgetClass "{6853047AFC9B283C}" {
