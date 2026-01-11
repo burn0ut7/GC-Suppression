@@ -115,7 +115,7 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 		s_fBlurrinessSize = Math.Lerp(0.5, m_fBlurSizeMin, blurSizeT);
 		
 		//Color
-		float satT = suppressionAmount * m_fContrastMultiplier;
+		float satT = suppressionAmount * m_fSaturationMultiplier;
 		satT = Math.Clamp(satT, 0, 1);
 		s_fSaturation = Math.Lerp(1.0, m_fSaturationMin, satT);
 		
