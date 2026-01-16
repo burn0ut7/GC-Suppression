@@ -4,11 +4,11 @@ modded class SCR_MuzzleEffectComponent
 	{
 		super.OnFired(effectEntity, muzzle, projectileEntity);
 
-		if (ShouldInsert(projectileEntity))
+		if (ShouldInsert(projectileEntity, muzzle))
 			GC_SuppressionSystem.GetInstance().RegisterProjectile(projectileEntity);
 	}
 	
-	protected bool ShouldInsert(IEntity projectile)
+	protected bool ShouldInsert(IEntity projectile, BaseMuzzleComponent muzzle)
 	{
 		// insertion criteria
 		// 1. minimum distance (don't suppress yourself or squad members immediately next to you)
@@ -29,19 +29,18 @@ modded class SCR_MuzzleEffectComponent
 		
 		velocity.Normalize();
 		
-		vector projPos = projectile.GetOrigin();
+		vector projPos = muzzle.GetOwner().GetOrigin();
 		
-		SCR_ChimeraCharacter cc = SCR_ChimeraCharacter.Cast(player);
-		vector playerEyePos = cc.EyePosition();
+		vector playerPos = player.GetOrigin();
 
 		// 1. min distance
-	    float distance = vector.Distance(playerEyePos, projPos);
-	    if (distance < GC_SuppressionSystem.GetInstance().GetMinRange())
+	    float distance = vector.Distance(playerPos, projPos);
+	    if (distance <= GC_SuppressionSystem.GetInstance().GetMinRange())
 	        return false;
 	
 		//This mostly works. Upclose projectiles will not be tracked due to being outside angle
 		// 2. maximum angle (~25° forward cone)
-		vector toPlayer = playerEyePos - projPos;
+		vector toPlayer = playerPos - projPos;
 		if (vector.DotXZ(velocity, toPlayer.Normalized()) < 0.975)
 			return false;
 		
@@ -50,7 +49,7 @@ modded class SCR_MuzzleEffectComponent
 		if (t < 0) // technically double checking. leaving still in case above was changed.
 			return false;
 		vector passPoint = projPos + velocity * t;
-		if (vector.DistanceXZ(playerEyePos, passPoint) > 100) // 100 is kind of arbitrary but should be enough
+		if (vector.DistanceXZ(playerPos, passPoint) > 100) // 100 is kind of arbitrary but should be enough
 			return false;
 		
 	    return true;
