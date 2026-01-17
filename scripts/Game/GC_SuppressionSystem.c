@@ -155,8 +155,13 @@ class GC_SuppressionSystem : GameSystem
 			return;
 
 		float mass = GetMass(projectile);
-		if (!mass)
+		if(!mass)
 			return;
+		
+		//BaseContainer container = projectile.move.GetComponentSource(projectile.GetOwner());
+		//container.Get("Mass", mass);
+		
+		//Print("GC | Mass: " + mass);
 		
 		// fucky because ondelete gets rid of move component instance
 		float speed = projectile.move.GetVelocity().Length();
@@ -249,7 +254,6 @@ class GC_SuppressionSystem : GameSystem
 		if (sse)
 			sse.Flinch();
 		
-		
 		if (m_fFlinchShakeMultiplier > 0)
 		{
 			float suppressionMulti = 1.0 + m_fSuppression * m_fFlinchShakeSuppressedMultiplier;
@@ -290,9 +294,8 @@ class GC_SuppressionSystem : GameSystem
 		projComp.move = moveComp;
 		projComp.position = projectile.GetOrigin();
 		
+		PrintFormat("GC | RegisterProjectile: %1", projComp);
 		m_aProjectiles.Insert(projComp);
-		
-		//Print("GC | Projectile Registered: " + projectile);
 	}
 	
 	void UnregisterProjectile(GC_ProjectileComponent projectile)
@@ -316,10 +319,9 @@ class GC_SuppressionSystem : GameSystem
 				
 				AddSuppression(projectile, dist, multi);
 			}
-	
-			//Print("GC | UnregisterProjectile: " + projectile.GetOwner());
 		}
 		
+		Print("GC | UnregisterProjectile: " + projectile);
 		m_aProjectiles.RemoveItem(projectile);
 	}
 	
@@ -392,7 +394,7 @@ class GC_SuppressionSystem : GameSystem
 	
 	float GetMinRange()
 	{
-		return m_fMaxRange;
+		return m_fMinRange;
 	}
 	
 	//! Debug shapes, remove later

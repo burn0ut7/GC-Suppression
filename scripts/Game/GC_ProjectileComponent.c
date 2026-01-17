@@ -18,10 +18,10 @@ class GC_ProjectileComponent : ScriptComponent
 	
 	override protected void OnDelete(IEntity owner)
 	{
-		super.OnDelete(owner);
-		
 		GC_SuppressionSystem suppresion = GC_SuppressionSystem.GetInstance();
 		if(suppresion)
 			suppresion.UnregisterProjectile(this);
+		
+		super.OnDelete(owner);
 	}
 }

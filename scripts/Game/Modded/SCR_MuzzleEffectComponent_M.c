@@ -35,7 +35,11 @@ modded class SCR_MuzzleEffectComponent
 
 		// 1. min distance
 	    float distance = vector.Distance(playerPos, projPos);
-	    if (distance <= GC_SuppressionSystem.GetInstance().GetMinRange())
+		float minDistance = GC_SuppressionSystem.GetInstance().GetMinRange();
+
+		PrintFormat("GC | ShouldInsert Projectile: %1 - Dist: %2 - minDistance: %4 - system: %4", projectile, distance, projPos, minDistance, GC_SuppressionSystem.GetInstance());
+	
+	    if (distance <= minDistance)
 	        return false;
 	
 		//This mostly works. Upclose projectiles will not be tracked due to being outside angle
