@@ -2,8 +2,7 @@ modded class SCR_MuzzleEffectComponent
 {
 	override void OnFired(IEntity effectEntity, BaseMuzzleComponent muzzle, IEntity projectileEntity)
 	{
-		bool shouldInsert = ShouldInsert(projectileEntity, muzzle);
-		if (shouldInsert)
+		if (ShouldInsert(projectileEntity, muzzle))
 			GC_SuppressionSystem.GetInstance().RegisterProjectile(projectileEntity);
 		
 		super.OnFired(effectEntity, muzzle, projectileEntity);
@@ -36,17 +35,9 @@ modded class SCR_MuzzleEffectComponent
 		
 		// 1. min distance
 		float distance = vector.Distance(playerPos, projPos);
-		float minDistance = GC_SuppressionSystem.GetInstance().GetMinRange();
-		
-		PrintFormat("GC | ShouldInsert Projectile: %1 - Dist: %2 - minDistance: %4 - system: %4", projectile, distance, projPos, minDistance, );
-		
-		if (distance <= minDistance)
-		{
-			PrintFormat("GC | ShouldInsert  false distance");
+		if (distance <= GC_SuppressionSystem.GetInstance().GetMinRange())
 			return false;
-		}
 	
-		
 		//This mostly works. Upclose projectiles will not be tracked due to being outside angle
 		// 2. maximum angle (~25° forward cone)
 		vector toPlayer = playerPos - projPos;

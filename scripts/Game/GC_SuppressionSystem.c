@@ -100,8 +100,6 @@ class GC_SuppressionSystem : GameSystem
 
 	protected void UpdateProjectiles()
 	{
-		//Print("GC | UpdateProjectiles: " + m_aProjectiles.Count());
-		
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
 		if (!player)
 			return;
@@ -181,8 +179,8 @@ class GC_SuppressionSystem : GameSystem
 		
 		UpdateEffect();
 		
-		PrintFormat("GC | AddSuppression mass=%1 speed=%2 dist=%3 multiplier=%4 add=%5 total=%6 porj=%7",
-			mass, speed, distance, multiplier, addSuppression, m_fSuppression, projectile.entity);
+		//PrintFormat("GC | AddSuppression mass=%1 speed=%2 dist=%3 multiplier=%4 add=%5 total=%6 porj=%7",
+		//	mass, speed, distance, multiplier, addSuppression, m_fSuppression, projectile.entity);
 	}
 	
 	//This is also fucky where again movecomp instance is gone when under going delete
@@ -289,7 +287,7 @@ class GC_SuppressionSystem : GameSystem
 		projComp.move = moveComp;
 		projComp.position = projectile.GetOrigin();
 		
-		PrintFormat("GC | RegisterProjectile: %1", projComp);
+		//PrintFormat("GC | RegisterProjectile: %1", projComp);
 		m_aProjectiles.Insert(projComp);
 	}
 	
@@ -315,8 +313,8 @@ class GC_SuppressionSystem : GameSystem
 			}
 		}
 		
-		Print("GC | UnregisterProjectile: " + projectile);
-		m_aProjectiles.RemoveItem(projectile);
+		if(m_aProjectiles.Contains(projectile))
+			m_aProjectiles.RemoveItem(projectile);
 	}
 	
 	//Player is consider in cover if they can't be hit by a bullet
