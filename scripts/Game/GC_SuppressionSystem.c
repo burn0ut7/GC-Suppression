@@ -131,20 +131,15 @@ class GC_SuppressionSystem : GameSystem
 						multi -= m_fCoverMultiplier;
 					
 					AddSuppression(projectile, dist, multi);
-					CreateDebugCircle(flybyPos, Color.GREEN);
 				}
-				else
-					CreateDebugCircle(flybyPos, Color.PINK);
-				
+
 				if (dist <= m_fFlinchRange)
 					Flinch();
 
 		        m_aProjectiles.Remove(i);
 		        continue;
 		    }
-			else
-				CreateDebugCircle(projPos);
-		
+
 			projectile.position = projPos;
 		}
 	}
@@ -302,7 +297,6 @@ class GC_SuppressionSystem : GameSystem
 	{
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
 		
-
 		if (player && projectile.entity)
 		{
 			SCR_ChimeraCharacter cc = SCR_ChimeraCharacter.Cast(player);
@@ -358,9 +352,6 @@ class GC_SuppressionSystem : GameSystem
 		
 		float fraction = GetGame().GetWorld().TraceMove(tp);
 		
-		m_shapes.Insert(Shape.Create(ShapeType.LINE, Color.RED, ShapeFlags.DEFAULT, start, end));
-		//PrintFormat("GC | IsInCover: %1 - %2", fraction, tp.ColliderName);
-		
 		return fraction < 1.0;
 	}
 
@@ -398,6 +389,7 @@ class GC_SuppressionSystem : GameSystem
 	}
 	
 	//! Debug shapes, remove later
+	/*
 	protected ref array<ref Shape> m_shapes = {};
 	protected void CreateDebugCircle(vector position, int color = Color.RED, bool clear = false)
 	{
@@ -406,4 +398,5 @@ class GC_SuppressionSystem : GameSystem
 		
 		m_shapes.Insert(Shape.CreateSphere(color, ShapeFlags.DEFAULT, position, 0.2));
 	}
+	*/
 }
