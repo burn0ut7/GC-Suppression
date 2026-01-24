@@ -72,6 +72,9 @@ class GC_SuppressionSystem : GameSystem
 		m_fSuppression = 0;
 		
 		SCR_ScreenEffectsManager sem = SCR_ScreenEffectsManager.GetScreenEffectsDisplay();
+		if (!sem)
+			return;
+		
 		GC_SuppressionScreenEffect sse = GC_SuppressionScreenEffect.Cast(sem.GetEffect(GC_SuppressionScreenEffect));
 		if (sse)
 			sse.Disable();
@@ -111,7 +114,7 @@ class GC_SuppressionSystem : GameSystem
 		{
 			GC_ProjectileComponent projectile = m_aProjectiles[i];
 			
-		    vector projPos = projectile.entity.GetOrigin();
+		    vector projPos = projectile.GetOwner().GetOrigin();
 		
 		    // Check if projectile is moving toward the player
 		    float approach = vector.Dot(playerEyePos - projPos, projectile.move.GetVelocity());
@@ -128,7 +131,8 @@ class GC_SuppressionSystem : GameSystem
 					if(IsInCover(projectile))
 						multi -= m_fCoverMultiplier;
 					
-					AddSuppression(projectile, dist, multi);
+					float suppression = GetBulletSuppression(projectile, dist, multi);
+					AddSuppression(suppression);
 				}
 
 				if (dist <= m_fFlinchRange)
@@ -142,72 +146,80 @@ class GC_SuppressionSystem : GameSystem
 		}
 	}
 	
-	protected void AddSuppression(GC_ProjectileComponent projectile, float distance, float multiplier = 1)
+	protected void AddSuppression(float suppression)
 	{
-		if (!projectile)
-			return;
-
-		float mass = GetMass(projectile);
-		if(!mass)
+		if (suppression <= 0)
 			return;
 		
-		//BaseContainer container = projectile.move.GetComponentSource(projectile.GetOwner());
-		//container.Get("Mass", mass);
+		m_fSuppression = Math.Clamp(m_fSuppression + suppression, 0, 1);
 		
-		//Print("GC | Mass: " + mass);
+		m_iLastSuppressionMs = System.GetTickCount();
 		
-		// fucky because ondelete gets rid of move component instance
+		UpdateEffect();
+	}
+	
+	protected float GetBulletSuppression(GC_ProjectileComponent projectile, float distance, float multiplier = 1)
+	{
+		BaseContainer container = projectile.move.GetComponentSource(projectile.GetOwner());
+		if(!container)
+			return 0;
+		
+		float mass;
+		container.Get("Mass", mass);
+		if (!mass)
+			return 0;
+		
 		float speed = projectile.move.GetVelocity().Length();
-
+		
 		float distanceTerm = 0.0;
 		if (distance <= 0.0)
 			distanceTerm = 1.0;
 		else if (distance < m_fMaxRange)
 			distanceTerm = 1.0 - (distance / m_fMaxRange);
 
-		float addSuppression = 0.0;
-		addSuppression += (mass * m_fMassMultiplier);
-		addSuppression += (speed * m_fSpeedMultiplier);
-		addSuppression *= distanceTerm;
+		float suppression = (mass * m_fMassMultiplier);
+		suppression += (speed * m_fSpeedMultiplier);
+		suppression *= distanceTerm;
 	
-		// Global scale
-		addSuppression = addSuppression * m_fBaseSuppressionMultiplier * multiplier;
+		suppression = suppression * m_fBaseSuppressionMultiplier * multiplier;
 		
-		m_fSuppression = Math.Clamp(m_fSuppression + addSuppression, 0, 1);
+		suppression = Math.Clamp(suppression, 0, 1);
 		
-		m_iLastSuppressionMs = System.GetTickCount();
-		
-		UpdateEffect();
-		
-		//PrintFormat("GC | AddSuppression mass=%1 speed=%2 dist=%3 multiplier=%4 add=%5 total=%6 porj=%7",
-		//	mass, speed, distance, multiplier, addSuppression, m_fSuppression, projectile.entity);
+		return suppression;
 	}
 	
-	//This is also fucky where again movecomp instance is gone when under going delete
-	protected float GetMass(GC_ProjectileComponent projectile)
+	protected float GetBulletSuppression(IEntity bullet, float distance, float multiplier = 1)
 	{
-		EntityPrefabData pefab = projectile.entity.GetPrefabData();
-
-		BaseContainer pefabContainer = pefab.GetPrefab();
-
-		BaseContainerList components = pefabContainer.GetObjectArray("components");
-
-		BaseContainer container;
-		for (int c = components.Count() - 1; c >= 0; c--)
-		{
-			container = components.Get(c);
-			typename type = container.GetClassName().ToType();
-			
-			if (type && type.IsInherited(ProjectileMoveComponent))
-				break;
-			
-			container = null;
-		}
+		ProjectileMoveComponent move = ProjectileMoveComponent.Cast(bullet.FindComponent(ProjectileMoveComponent));
+		if (!move)
+			return 0;
+		
+		BaseContainer container = move.GetComponentSource(bullet);
+		if(!container)
+			return 0;
 		
 		float mass;
 		container.Get("Mass", mass);
+		if (!mass)
+			return 0;
 		
-		return mass;
+		float speed = move.GetVelocity().Length();
+		
+		float distanceTerm = 0.0;
+		if (distance <= 0.0)
+			distanceTerm = 1.0;
+		else if (distance < m_fMaxRange)
+			distanceTerm = 1.0 - (distance / m_fMaxRange);
+
+		float suppression = (mass * m_fMassMultiplier);
+		suppression += (speed * m_fSpeedMultiplier);
+		suppression *= distanceTerm;
+	
+		suppression = suppression * m_fBaseSuppressionMultiplier * multiplier;
+		
+		suppression = Math.Clamp(suppression, 0, 1);
+		
+		return suppression;
 	}
 	
 	protected void UpdateSuppression()
@@ -263,6 +275,16 @@ class GC_SuppressionSystem : GameSystem
 		SCR_CameraShakeManagerComponent.AddCameraShake(magnitude, magnitude, inTime, sustainTime, outTime);
 	}
 	
+	//(m_eSuppType, source, transform, speed);
+	void HandleBulletImpact(IEntity bullet, float distance, float speed)
+	{
+		
+		float suppression = GetBulletSuppression(bullet, distance);
+		AddSuppression(suppression);
+		
+		//PrintFormat("GC | HandleBulletImpact: %1 - %2 - %3", bullet, distance, speed);
+	}
+	
 	void RegisterProjectile(IEntity projectile)
 	{
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
@@ -276,14 +298,10 @@ class GC_SuppressionSystem : GameSystem
 		if (m_aProjectiles.Contains(projComp))
 			return;
 		
-		if (!projComp.IsEnabled())
-			return;
-		
 		ProjectileMoveComponent moveComp = ProjectileMoveComponent.Cast(projectile.FindComponent(ProjectileMoveComponent));
 		if (!moveComp)
 			return;
 
-		projComp.entity = projectile;
 		projComp.move = moveComp;
 		projComp.position = projectile.GetOrigin();
 		
@@ -293,8 +311,12 @@ class GC_SuppressionSystem : GameSystem
 	
 	void UnregisterProjectile(GC_ProjectileComponent projectile)
 	{
-		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
+		/*
+		PlayerController pc = GetGame().GetPlayerController();
+		if (!pc)
+			return;
 		
+		IEntity player = pc.GetControlledEntity();
 		if (player && projectile.entity)
 		{
 			SCR_ChimeraCharacter cc = SCR_ChimeraCharacter.Cast(player);
@@ -312,6 +334,7 @@ class GC_SuppressionSystem : GameSystem
 				AddSuppression(projectile, dist, multi);
 			}
 		}
+		*/
 		
 		if(m_aProjectiles.Contains(projectile))
 			m_aProjectiles.RemoveItem(projectile);

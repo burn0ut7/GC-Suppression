@@ -1,0 +1,3 @@
+better ShouldInsert for SCR_MuzzleEffectComponent
+explosions
+ragdoll for explosives

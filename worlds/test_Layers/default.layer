@@ -1,0 +1,101 @@
+$grp Projectile : "{32E12D322E107F1C}Prefabs/Weapons/Ammo/Ammo_Rocket_PG7VM.et" {
+ {
+  coords 125.934 1 126.91
+ }
+ {
+  coords 126.326 1 126.77
+ }
+ {
+  coords 126.447 1 126.814
+ }
+ {
+  coords 126.572 1 126.825
+ }
+ {
+  coords 126.698 1 126.83
+ }
+ {
+  coords 126.764 1 126.824
+ }
+ {
+  coords 126.132 1 126.869
+ }
+}
+$grp GenericEntity : "{3E413771E1834D2F}Prefabs/Weapons/Rifles/M16/Rifle_M16A2.et" {
+ {
+  coords 132.213 1.251 127.832
+ }
+ {
+  coords 132.734 1 127.721
+ }
+ {
+  coords 132.932 1 127.881
+ }
+ {
+  coords 133.136 1 127.861
+ }
+ {
+  coords 133.299 1 127.844
+ }
+ {
+  coords 133.428 1 127.831
+ }
+}
+$grp GenericEntity : "{8FDC6AA92A0DFADC}Prefabs/Structures/Walls/Brick/BrickWall_02/dst/Brick_wall_02_2m_dst_01.et" {
+ {
+  coords 136.662 1.55 131.897
+  angles 0 -90 0
+ }
+ {
+  coords 136.603 1.245 130.046
+  angles 0 -90 0
+ }
+ {
+  coords 136.626 0.556 126.529
+  angles 0 -90 0
+ }
+ {
+  coords 136.549 0.343 124.577
+  angles 0 -90 0
+ }
+ {
+  coords 138.536 1.712 133.663
+  angles 0 -177.503 0
+ }
+ {
+  coords 138.458 4.052 132.8
+  angles -85.121 3.647 -180
+ }
+ {
+  coords 138.505 3.141 133.648
+  angles 0 -177.503 0
+ }
+ {
+  coords 140.506 1.679 133.684
+  angles 0 -177.503 0
+ }
+ {
+  coords 140.467 3.174 133.669
+  angles 0 -177.503 0
+ }
+}
+SCR_ChimeraCharacter : "{C5574DAD3956486C}Prefabs/Characters/Campaign/Final/BLUFOR/US_army/Regular/Campaign_US_Player_Rifleman.et" {
+ coords 135.311 1 132.286
+}
+GenericEntity : "{E8A55396050E1762}Prefabs/Weapons/Launchers/RPG7/Launcher_RPG7_PGO7.et" {
+ coords 126.507 1 128.337
+}
+$grp Vehicle : "{F6B23D17D5067C11}Prefabs/Vehicles/Wheeled/M151A2/M151A2_M2HB.et" {
+ M151A2_M2HB1 {
+  coords 130.064 1 123.282
+  angles 0 178.935 0
+ }
+ M151A2_M2HB2 {
+  coords 129.866 1 134.897
+  angles 0 2.296 0
+ }
+ M151A2_M2HB3 {
+  coords 121.87 1 128.952
+  angles 0 86.762 0
+ }
+}

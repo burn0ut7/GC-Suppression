@@ -18,7 +18,7 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	[Attribute("0", UIWidgets.Auto, "Minimum blur size", params: "0 0.5")]
 	protected float m_fBlurSizeMin;
 
-	[Attribute("0.25", UIWidgets.Auto, "Minimum saturation", params: "0 1")]
+	[Attribute("0.15", UIWidgets.Auto, "Minimum saturation", params: "0 1")]
 	protected float m_fSaturationMin;
 	
 	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to saturation")]
@@ -119,9 +119,9 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 		satT = Math.Clamp(satT, 0, 1);
 		s_fSaturation = Math.Lerp(1.0, m_fSaturationMin, satT);
 		
-		float conT = suppressionAmount * m_fContrastMultiplier;
-		conT = Math.Clamp(conT, 0, 1);
-		s_fContrast = Math.Lerp(1.0, m_fContrastMax, conT);
+		//float conT = suppressionAmount * m_fContrastMultiplier;
+		//conT = Math.Clamp(conT, 0, 1);
+		//s_fContrast = Math.Lerp(1.0, m_fContrastMax, conT);
 
 		//Chrom Aber
 		s_fChromAber = Math.Clamp(suppressionAmount * m_fChromAberMultiplier * m_fChromAberMax, 0, m_fChromAberMax);

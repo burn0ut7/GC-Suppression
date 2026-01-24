@@ -3,5 +3,11 @@ Projectile {
  components {
   GC_ProjectileComponent "{684F3C664BF049D1}" {
   }
+  ShellMoveComponent "{851AA4A2AE0A5691}" {
+   ProjectileEffects {
+    GC_SuppressionEffect "{687119C3657DE8A0}" {
+    }
+   }
+  }
  }
 }

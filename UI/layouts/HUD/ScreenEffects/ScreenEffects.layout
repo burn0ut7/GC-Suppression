@@ -19,7 +19,7 @@ FrameWidgetClass {
       HorizontalAlign 3
       VerticalAlign 3
      }
-     Opacity 0.95
+     Opacity 0.965
      Color 0 0 0 1
      Size 1920 1080
      Mask "{77CF24D5CA2DB63F}UI/Textures/ScreenEffects/Suppression/supressionVignette2.edds"

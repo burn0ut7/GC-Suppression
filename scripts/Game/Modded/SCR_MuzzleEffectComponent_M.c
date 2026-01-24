@@ -19,6 +19,10 @@ modded class SCR_MuzzleEffectComponent
 		if (!player)
 			return false;
 		
+		GC_ProjectileComponent projComp = GC_ProjectileComponent.Cast(projectile.FindComponent(GC_ProjectileComponent));
+		if (!projComp)
+			return false;
+		
 		ProjectileMoveComponent moveComp = ProjectileMoveComponent.Cast(projectile.FindComponent(ProjectileMoveComponent));
 		if (!moveComp)
 			return false;
