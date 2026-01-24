@@ -1,7 +1,8 @@
 enum GC_ESuppressionType
 {
 	BULLET,
-	EXPLOSIVE
+	EXPLOSIVE,
+	NONE
 }
 
 class GC_SuppressionEffect : BaseProjectileEffect
@@ -28,6 +29,7 @@ class GC_SuppressionEffect : BaseProjectileEffect
 				HandleBullet(source, transform, instigator, speed);
 				break;
 		}
+		
 		/*
 		ProjectileMoveComponent move = ProjectileMoveComponent.Cast(source.FindComponent(ProjectileMoveComponent));
 		if(!move)
@@ -78,7 +80,7 @@ class GC_SuppressionEffect : BaseProjectileEffect
 		float distance = vector.Distance(transform[0], chimera.EyePosition());
 		if (distance > suppr.GetMaxRange())
 			return;
-		
-		suppr.HandleBulletImpact(source, distance, speed);
+
+		suppr.HandleBulletImpact(source, transform[1], distance, speed);
 	}
 }

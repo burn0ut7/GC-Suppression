@@ -1,3 +1,20 @@
+$grp GenericEntity : "{135044000CA7BF85}Prefabs/Weapons/Rifles/M16/Variants/Rifle_M16A2_carbine_M203_OliveGreen_Solid.et" {
+ {
+  coords 124.576 1 125.768
+ }
+ {
+  coords 124.887 1 125.882
+ }
+ {
+  coords 124.731 1.015 125.777
+ }
+ {
+  coords 125.067 1 125.791
+ }
+ {
+  coords 125.113 1 125.796
+ }
+}
 $grp Projectile : "{32E12D322E107F1C}Prefabs/Weapons/Ammo/Ammo_Rocket_PG7VM.et" {
  {
   coords 125.934 1 126.91

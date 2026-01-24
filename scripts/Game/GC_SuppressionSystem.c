@@ -276,10 +276,13 @@ class GC_SuppressionSystem : GameSystem
 	}
 	
 	//(m_eSuppType, source, transform, speed);
-	void HandleBulletImpact(IEntity bullet, float distance, float speed)
+	void HandleBulletImpact(IEntity bullet, vector direction, float distance, float speed)
 	{
+		float multi = 1;
+		if(IsInCover(direction))
+			multi -= m_fCoverMultiplier;
 		
-		float suppression = GetBulletSuppression(bullet, distance);
+		float suppression = GetBulletSuppression(bullet, distance, multi);
 		AddSuppression(suppression);
 		
 		//PrintFormat("GC | HandleBulletImpact: %1 - %2 - %3", bullet, distance, speed);
@@ -340,15 +343,46 @@ class GC_SuppressionSystem : GameSystem
 			m_aProjectiles.RemoveItem(projectile);
 	}
 	
+	protected bool IsInCover(vector direction)
+	{
+		PlayerController pc = GetGame().GetPlayerController();
+		if (!pc)
+			return false;
+		
+		SCR_ChimeraCharacter player = SCR_ChimeraCharacter.Cast(pc.GetControlledEntity());
+		if (!player)
+			return false;
+
+		vector start = player.EyePosition();
+		vector end = start - direction * m_fCoverTraceLength;
+		
+		
+		// Trace from eyes toward where the bullet came from
+		TraceParam tp = MakeTraceParam(start, end, TraceFlags.ENTS | TraceFlags.WORLD);
+		tp.Exclude = player;
+		
+		float fraction = GetGame().GetWorld().TraceMove(tp);
+		
+		if(fraction < 1.0)
+			m_shapes.Insert(Shape.Create(ShapeType.LINE, Color.GREEN, ShapeFlags.DEFAULT, start, end));
+		else
+			m_shapes.Insert(Shape.Create(ShapeType.LINE, Color.RED, ShapeFlags.DEFAULT, start, end));
+		
+		return fraction < 1.0;
+	}
+	
 	//Player is consider in cover if they can't be hit by a bullet
 	protected bool IsInCover(GC_ProjectileComponent projectile)
 	{
-		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
-		if (!player)
+		PlayerController pc = GetGame().GetPlayerController();
+		if (!pc)
 			return false;
 		
-		SCR_ChimeraCharacter cc = SCR_ChimeraCharacter.Cast(player);
-		vector playerEyePos = cc.EyePosition();
+		SCR_ChimeraCharacter player = SCR_ChimeraCharacter.Cast(pc.GetControlledEntity());
+		if (!player)
+			return false;
+
+		vector playerEyePos = player.EyePosition();
 		
 		if (!projectile)
 			return false;
@@ -410,7 +444,7 @@ class GC_SuppressionSystem : GameSystem
 	}
 	
 	//! Debug shapes, remove later
-	/*
+	
 	protected ref array<ref Shape> m_shapes = {};
 	protected void CreateDebugCircle(vector position, int color = Color.RED, bool clear = false)
 	{
@@ -419,5 +453,4 @@ class GC_SuppressionSystem : GameSystem
 		
 		m_shapes.Insert(Shape.CreateSphere(color, ShapeFlags.DEFAULT, position, 0.2));
 	}
-	*/
 }
