@@ -4,7 +4,6 @@ class GC_ProjectileComponentClass : ScriptComponentClass
 
 class GC_ProjectileComponent : ScriptComponent
 {
-	ProjectileMoveComponent move;
 	vector position;
 
 	override protected void OnDelete(IEntity owner)

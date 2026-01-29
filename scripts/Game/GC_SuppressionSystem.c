@@ -113,11 +113,14 @@ class GC_SuppressionSystem : GameSystem
 		for (int i = m_aProjectiles.Count() - 1; i >= 0; i--)
 		{
 			GC_ProjectileComponent projectile = m_aProjectiles[i];
+			ProjectileMoveComponent move = ProjectileMoveComponent.Cast(projectile.GetOwner().FindComponent(ProjectileMoveComponent));
+			if(!move)
+				return;
 			
 		    vector projPos = projectile.GetOwner().GetOrigin();
 		
 		    // Check if projectile is moving toward the player
-		    float approach = vector.Dot(playerEyePos - projPos, projectile.move.GetVelocity());
+		    float approach = vector.Dot(playerEyePos - projPos, move.GetVelocity());
 			
 		    if (approach <= 0)
 		    {
@@ -160,7 +163,15 @@ class GC_SuppressionSystem : GameSystem
 	
 	protected float GetBulletSuppression(GC_ProjectileComponent projectile, float distance, float multiplier = 1)
 	{
-		BaseContainer container = projectile.move.GetComponentSource(projectile.GetOwner());
+		IEntity projEntity = projectile.GetOwner();
+		if(!projEntity)
+			return 0;
+		
+		ProjectileMoveComponent move = ProjectileMoveComponent.Cast(projEntity.FindComponent(ProjectileMoveComponent));
+		if(!move)
+			return 0;
+
+		BaseContainer container = move.GetComponentSource(projEntity);
 		if(!container)
 			return 0;
 		
@@ -169,7 +180,7 @@ class GC_SuppressionSystem : GameSystem
 		if (!mass)
 			return 0;
 		
-		float speed = projectile.move.GetVelocity().Length();
+		float speed = move.GetVelocity().Length();
 		
 		float distanceTerm = 0.0;
 		if (distance <= 0.0)
@@ -305,7 +316,6 @@ class GC_SuppressionSystem : GameSystem
 		if (!moveComp)
 			return;
 
-		projComp.move = moveComp;
 		projComp.position = projectile.GetOrigin();
 		
 		//PrintFormat("GC | RegisterProjectile: %1", projComp);
@@ -363,10 +373,10 @@ class GC_SuppressionSystem : GameSystem
 		
 		float fraction = GetGame().GetWorld().TraceMove(tp);
 		
-		if(fraction < 1.0)
-			m_shapes.Insert(Shape.Create(ShapeType.LINE, Color.GREEN, ShapeFlags.DEFAULT, start, end));
-		else
-			m_shapes.Insert(Shape.Create(ShapeType.LINE, Color.RED, ShapeFlags.DEFAULT, start, end));
+		//if(fraction < 1.0)
+		//	m_shapes.Insert(Shape.Create(ShapeType.LINE, Color.GREEN, ShapeFlags.DEFAULT, start, end));
+		//else
+		//	m_shapes.Insert(Shape.Create(ShapeType.LINE, Color.RED, ShapeFlags.DEFAULT, start, end));
 		
 		return fraction < 1.0;
 	}
