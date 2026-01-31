@@ -7,6 +7,8 @@ SCR_PlayerController {
      InfoDisplays {
       GC_SuppressionScreenEffect "{68503B71EBEA1FD4}" {
        m_eLayer BACKGROUND
+       m_iOverrideZOrder 0
+       m_bAdaptiveOpacity 0
       }
      }
     }

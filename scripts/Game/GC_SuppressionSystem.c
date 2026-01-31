@@ -397,10 +397,11 @@ class GC_SuppressionSystem : GameSystem
 		if (!projectile)
 			return false;
 		
-		if (!projectile.move)
+		ProjectileMoveComponent move = ProjectileMoveComponent.Cast(projectile.GetOwner().FindComponent(ProjectileMoveComponent));
+		if(!move)
 			return false;
 		
-		vector velocity = projectile.move.GetVelocity();
+		vector velocity = move.GetVelocity();
 		if (velocity.LengthSq() <= 0.0001)
 			return false;
 		
@@ -454,7 +455,7 @@ class GC_SuppressionSystem : GameSystem
 	}
 	
 	//! Debug shapes, remove later
-	
+	/*
 	protected ref array<ref Shape> m_shapes = {};
 	protected void CreateDebugCircle(vector position, int color = Color.RED, bool clear = false)
 	{
@@ -463,4 +464,5 @@ class GC_SuppressionSystem : GameSystem
 		
 		m_shapes.Insert(Shape.CreateSphere(color, ShapeFlags.DEFAULT, position, 0.2));
 	}
+	*/
 }

@@ -45,7 +45,7 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	protected static float s_fBlurrinessSize = 0.5;
 	
 	protected const string m_sRadialBlurMaterialName = "{E0162CBB3FA4AC16}UI/Materials/GC_ScreenEffects_BlurPP.emat";
-	protected const int m_sRadialBlurPriority = 17;
+	protected const int m_sRadialBlurPriority = 1;
 	
 	//Color
 	protected static bool s_bEnableColorEffect = false;
@@ -53,14 +53,14 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	protected static float s_fSaturation = 1;
 	
 	protected const string m_sColorEffectMaterialName = "{C7CAE196FEBD4469}UI/Materials/GC_ScreenEffects_ColorPP.emat";
-	protected const int m_sColorEffectPriority = 18;
+	protected const int m_sColorEffectPriority = 2;
 	
 	//Chrom aber
 	protected static bool s_bEnableChromAberEffect = false;
 	protected static float s_fChromAber = 0;
 	
 	protected const string m_sChromAberMaterialName = "{07258569ACAB792D}UI/Materials/GC_ScreenEffects_ChromAberPP.emat";
-	protected const int m_sChromAberPriority = 19;
+	protected const int m_sChromAberPriority = 3;
 	
 	override void DisplayStartDraw(IEntity owner)
 	{
@@ -159,4 +159,24 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 		
 		ClearFlinch();
 	}
+}
+
+modded class SCR_NoiseFilterEffect
+{
+	override static void SetNightNoiseEffectState(bool newState)
+	{
+		PrintFormat("GC | SetNightNoiseEffectState: %1", newState);
+		
+		s_bDisableNightNoiseEffect = newState;
+		if (s_bDisableNightNoiseEffect)
+			s_fGrainIntensity = 0;
+	}
+	
+	override protected void DisplayUpdate(IEntity owner, float timeSlice)
+	{
+		super.DisplayUpdate(owner, timeSlice);
+		
+		PrintFormat("GC | DisplayUpdate: %1, %2", s_bDisableNightNoiseEffect, s_fGrainIntensity);
+	}
+	
 }
