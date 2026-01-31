@@ -160,23 +160,3 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 		ClearFlinch();
 	}
 }
-
-modded class SCR_NoiseFilterEffect
-{
-	override static void SetNightNoiseEffectState(bool newState)
-	{
-		PrintFormat("GC | SetNightNoiseEffectState: %1", newState);
-		
-		s_bDisableNightNoiseEffect = newState;
-		if (s_bDisableNightNoiseEffect)
-			s_fGrainIntensity = 0;
-	}
-	
-	override protected void DisplayUpdate(IEntity owner, float timeSlice)
-	{
-		super.DisplayUpdate(owner, timeSlice);
-		
-		PrintFormat("GC | DisplayUpdate: %1, %2", s_bDisableNightNoiseEffect, s_fGrainIntensity);
-	}
-	
-}
