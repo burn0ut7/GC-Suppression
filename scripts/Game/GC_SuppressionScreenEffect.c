@@ -61,7 +61,7 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	
 	protected const string m_sChromAberMaterialName = "{07258569ACAB792D}UI/Materials/GC_ScreenEffects_ChromAberPP.emat";
 	protected const int m_sChromAberPriority = 3;
-	
+
 	override void DisplayStartDraw(IEntity owner)
 	{
 		m_wVignette = ImageWidget.Cast(m_wRoot.FindAnyWidget("GC_vignette"));
@@ -77,6 +77,9 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	
 	void Flinch()
 	{
+		if(!m_bIsEnabled)
+			return;
+			
 		m_wFlinch.SetMaskProgress(0);
 		
 		AnimateWidget.StopAllAnimations(m_wFlinch);
@@ -140,14 +143,22 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 		}
 	}
 	
-	void Disable()
+	override void SetEnabled(bool isEnabled)
+	{
+		s_bEnableRadialBlur = isEnabled;
+		s_bEnableColorEffect = isEnabled;
+		s_bEnableChromAberEffect = isEnabled;
+		
+		m_bIsEnabled = isEnabled;
+		
+		ClearFlinch();
+		ClearEffects();
+	}
+	
+	override void ClearEffects()
 	{
 		if(m_wVignette)
 			m_wVignette.SetMaskProgress(0);
-		
-		s_bEnableRadialBlur = false;
-		s_bEnableColorEffect = false;
-		s_bEnableChromAberEffect = false;
 		
 		s_fBlurriness = 0;
 		s_fBlurrinessSize = 0.5;

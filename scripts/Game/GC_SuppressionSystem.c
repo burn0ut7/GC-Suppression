@@ -12,7 +12,7 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("1", UIWidgets.Auto, "Magnitude of screenshake when flinched. 0 = off", params: "0 inf")]
 	protected float m_fFlinchShakeMultiplier;
 	
-	[Attribute("0.5", UIWidgets.Auto, "Magnitude of screenshake when fully suppressed.", params: "0 inf")]
+	[Attribute("0.5", UIWidgets.Auto, "Multiplier of screenshake when based off suppresion buildup", params: "0 inf")]
 	protected float m_fFlinchShakeSuppressedMultiplier;
 
 	[Attribute("5.0", UIWidgets.Auto, "Distance up to which cover is recognized (meters)", params: "0 inf")]
@@ -33,7 +33,7 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("0.04", UIWidgets.Auto, "Global suppression multiplier per bullet", params: "0 inf")]
 	protected float m_fBaseSuppressionMultiplier;
 	
-	[Attribute("1.25", UIWidgets.Auto, "Suppression multiplier per bullet hitting near the player", params: "0 inf")]
+	[Attribute("1", UIWidgets.Auto, "Suppression multiplier per bullet hitting near the player", params: "0 inf")]
 	protected float m_fHitSuppressionMultiplier;
 	
 	[Attribute("0.5", UIWidgets.Auto, "Suppression multiplier when target is in cover (0.5 = -50%)", params: "0 inf")]
@@ -47,6 +47,8 @@ class GC_SuppressionSystem : GameSystem
 	
 	protected int m_iLastUpdateMs = 0;
 	protected int m_iLastSuppressionMs = 0;
+	
+	protected bool m_bIsEnabled = true;
 	
 	static GC_SuppressionSystem GetInstance()
 	{
@@ -69,15 +71,7 @@ class GC_SuppressionSystem : GameSystem
 	
 	void OnControlledEntityChanged(IEntity from, IEntity to)
 	{
-		m_fSuppression = 0;
-		
-		SCR_ScreenEffectsManager sem = SCR_ScreenEffectsManager.GetScreenEffectsDisplay();
-		if (!sem)
-			return;
-		
-		GC_SuppressionScreenEffect sse = GC_SuppressionScreenEffect.Cast(sem.GetEffect(GC_SuppressionScreenEffect));
-		if (sse)
-			sse.Disable();
+		SetEnabled(true);
 	}
 
 	override static void InitInfo(WorldSystemInfo outInfo)
@@ -289,7 +283,7 @@ class GC_SuppressionSystem : GameSystem
 	//(m_eSuppType, source, transform, speed);
 	void HandleBulletImpact(IEntity bullet, vector direction, float distance, float speed)
 	{
-		float multi = 1;
+		float multi = m_fHitSuppressionMultiplier;
 		if(IsInCover(direction))
 			multi -= m_fCoverMultiplier;
 		
@@ -301,6 +295,9 @@ class GC_SuppressionSystem : GameSystem
 	
 	void RegisterProjectile(IEntity projectile)
 	{
+		if (!m_bIsEnabled)
+			return;
+		
 		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
 		if (!player)
 			return;
@@ -324,31 +321,6 @@ class GC_SuppressionSystem : GameSystem
 	
 	void UnregisterProjectile(GC_ProjectileComponent projectile)
 	{
-		/*
-		PlayerController pc = GetGame().GetPlayerController();
-		if (!pc)
-			return;
-		
-		IEntity player = pc.GetControlledEntity();
-		if (player && projectile.entity)
-		{
-			SCR_ChimeraCharacter cc = SCR_ChimeraCharacter.Cast(player);
-			vector playerEyePos = cc.EyePosition();
-			
-			vector projPos = projectile.entity.GetOrigin();
-			float dist = vector.Distance(projPos, playerEyePos);
-		
-			if (dist <= m_fMaxRange)
-			{
-				float multi = m_fHitSuppressionMultiplier;
-				if(IsInCover(projectile))
-					multi -= m_fCoverMultiplier;
-				
-				AddSuppression(projectile, dist, multi);
-			}
-		}
-		*/
-		
 		if(m_aProjectiles.Contains(projectile))
 			m_aProjectiles.RemoveItem(projectile);
 	}
@@ -452,6 +424,26 @@ class GC_SuppressionSystem : GameSystem
 	float GetMinRange()
 	{
 		return m_fMinRange;
+	}
+	
+	void SetEnabled(bool isEnabled)
+	{
+
+		SCR_ScreenEffectsManager sem = SCR_ScreenEffectsManager.GetScreenEffectsDisplay();
+		if (sem)
+		{
+			GC_SuppressionScreenEffect sse = GC_SuppressionScreenEffect.Cast(sem.GetEffect(GC_SuppressionScreenEffect));
+			if (sse)
+			{
+				sse.SetEnabled(isEnabled);
+				sse.ClearEffects();
+			}
+		}
+
+		m_fSuppression = 0;
+		m_aProjectiles.Clear();
+		
+		m_bIsEnabled = isEnabled;
 	}
 	
 	//! Debug shapes, remove later

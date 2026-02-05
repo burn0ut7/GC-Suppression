@@ -1,6 +1,8 @@
 enum GC_ESuppressionType
 {
 	BULLET,
+	COLLISION,
+	TIME,
 	EXPLOSIVE,
 	NONE
 }
@@ -27,6 +29,9 @@ class GC_SuppressionEffect : BaseProjectileEffect
 		{
 			case GC_ESuppressionType.BULLET:
 				HandleBullet(source, transform, instigator, speed);
+				break;
+			case GC_ESuppressionType.COLLISION:
+				HandleCollsion(source, transform, instigator, speed);
 				break;
 		}
 		
@@ -82,5 +87,36 @@ class GC_SuppressionEffect : BaseProjectileEffect
 			return;
 
 		suppr.HandleBulletImpact(source, transform[1], distance, speed);
+	}
+	
+	protected void HandleCollsion(IEntity source, vector transform[3], Instigator instigator, float speed)
+	{
+		CollisionTriggerComponent collsion = CollisionTriggerComponent.Cast(source.FindComponent(CollisionTriggerComponent));
+		if(!collsion)
+			return;
+		
+		/*
+		PlayerController pc = GetGame().GetPlayerController();
+		if (!pc)
+			return;
+		
+		SCR_ChimeraCharacter chimera = SCR_ChimeraCharacter.Cast(pc.GetControlledEntity());
+		if (!chimera)
+			return;
+		
+		IEntity shooter = instigator.GetInstigatorEntity();
+		if(shooter == chimera)
+			return;
+		
+		GC_SuppressionSystem suppr = GC_SuppressionSystem.GetInstance();
+		if (!suppr)
+			return;
+		
+		float distance = vector.Distance(transform[0], chimera.EyePosition());
+		if (distance > suppr.GetMaxRange())
+			return;
+		*/
+		
+		//suppr.HandleBulletImpact(source, transform[1], distance, speed);
 	}
 }
