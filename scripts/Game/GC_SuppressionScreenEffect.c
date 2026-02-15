@@ -1,40 +1,65 @@
 class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 {
-	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to vignette mask")]
+	[Attribute("1.0", UIWidgets.Auto,
+	"Vignette intensity scaling from suppression (0–1). Higher = vignette ramps up faster.",
+	params: "0 inf")]
 	protected float m_fVignetteMultiplier;
 	
-	[Attribute("0.6", UIWidgets.Auto, "Maximum mask for vignette", params: "0 1")]
+	[Attribute("0.6", UIWidgets.Auto,
+		"Vignette maximum mask (cap). 0 = off, 1 = full vignette.",
+		params: "0 1")]
 	protected float m_fVignetteMax;
 	
-	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to blur intensivty")]
+	[Attribute("1.0", UIWidgets.Auto,
+		"Radial blur intensity scaling from suppression (0–1). Higher = blur ramps up faster.",
+		params: "0 inf")]
 	protected float m_fBlurMultiplier;
 	
-	[Attribute("0.2", UIWidgets.Auto, "Maximum blur intensivty", params: "0 0.2")]
+	[Attribute("0.2", UIWidgets.Auto,
+		"Radial blur maximum intensity (cap).",
+		params: "0 0.2")]
 	protected float m_fBlurMax;
 	
-	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to blur size")]
+	[Attribute("1.0", UIWidgets.Auto,
+		"Radial blur size scaling from suppression (0–1). Higher = blur radius changes faster.",
+		params: "0 inf")]
 	protected float m_fBlurSizeMultiplier;
 	
-	[Attribute("0", UIWidgets.Auto, "Minimum blur size", params: "0 0.5")]
+	[Attribute("0", UIWidgets.Auto,
+		"Minimum blur size at full suppression. Lower values concentrate blur more toward the center.",
+		params: "0 0.5")]
 	protected float m_fBlurSizeMin;
-
-	[Attribute("0.15", UIWidgets.Auto, "Minimum saturation", params: "0 1")]
+	
+	[Attribute("0.15", UIWidgets.Auto,
+		"Minimum saturation at full suppression. 1 = no desaturation, 0 = grayscale.",
+		params: "0 1")]
 	protected float m_fSaturationMin;
 	
-	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to saturation")]
+	[Attribute("1.0", UIWidgets.Auto,
+		"Saturation scaling from suppression (0–1). Higher = desaturation ramps up faster.",
+		params: "0 inf")]
 	protected float m_fSaturationMultiplier;
 	
-	[Attribute("1.1", UIWidgets.Auto, "Minimum contrast", params: "1 2")]
+	[Attribute("1.1", UIWidgets.Auto,
+		"Maximum contrast at full suppression (if contrast is enabled). 1 = no change.",
+		params: "1 2")]
 	protected float m_fContrastMax;
 	
-	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to blur size")]
+	[Attribute("1.0", UIWidgets.Auto,
+		"Contrast scaling from suppression (0–1). Higher = contrast ramps up faster.",
+		params: "0 inf")]
 	protected float m_fContrastMultiplier;
 	
-	[Attribute("0.01", UIWidgets.Auto, "Maximum Chromatic Aberration", params: "0 0.05")]
+	[Attribute("0.01", UIWidgets.Auto,
+		"Chromatic aberration maximum intensity (cap).",
+		params: "0 0.05")]
 	protected float m_fChromAberMax;
 	
-	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to Chromatic Aberration")]
+	[Attribute("1.0", UIWidgets.Auto,
+		"Chromatic aberration scaling from suppression (0–1). Higher = aberration ramps up faster.",
+		params: "0 inf")]
 	protected float m_fChromAberMultiplier;
+
 
 	protected ImageWidget m_wVignette;
 	protected ImageWidget m_wFlinch;

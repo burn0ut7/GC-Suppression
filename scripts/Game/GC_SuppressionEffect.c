@@ -86,7 +86,7 @@ class GC_SuppressionEffect : BaseProjectileEffect
 		if (distance > suppr.GetMaxRange())
 			return;
 
-		suppr.HandleBulletImpact(source, transform[1], distance, speed);
+		suppr.HandleBulletImpact(source, transform, distance, speed);
 	}
 	
 	protected void HandleCollsion(IEntity source, vector transform[3], Instigator instigator, float speed)

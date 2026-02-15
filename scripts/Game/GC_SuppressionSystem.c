@@ -1,42 +1,68 @@
 class GC_SuppressionSystem : GameSystem
 {
-	[Attribute("10", UIWidgets.Auto, "Max distance range in meters for a bullet to apply suppression passing by", params: "0 inf")]
+	[Attribute("10", UIWidgets.Auto,
+	"Flyby outer radius (meters). Suppression from a passing bullet fades to 0 at this distance (measured from player eye to closest approach).",
+	params: "0 inf")]
 	protected float m_fMaxRange;
 	
-	[Attribute("10", UIWidgets.Auto, "Min distance range in meters for a bullet to apply suppression from origin", params: "0 inf")]
+	[Attribute("10", UIWidgets.Auto,
+		"Flyby inner radius (meters). Inside this distance, flyby suppression is at full strength before falling off toward MaxRange.",
+		params: "0 inf")]
 	protected float m_fMinRange;
 	
-	[Attribute("1", UIWidgets.Auto, "Distance range in meters for a bullet to apply flinch", params: "0 inf")]
+	[Attribute("0.5", UIWidgets.Auto,
+		"Flinch radius (meters). Triggers flinch when a bullet's closest approach is within this distance.",
+		params: "0 inf")]
 	protected float m_fFlinchRange;
 	
-	[Attribute("1", UIWidgets.Auto, "Magnitude of screenshake when flinched. 0 = off", params: "0 inf")]
+	[Attribute("1", UIWidgets.Auto,
+		"Base screen-shake strength on flinch. 0 disables shake.",
+		params: "0 inf")]
 	protected float m_fFlinchShakeMultiplier;
 	
-	[Attribute("0.5", UIWidgets.Auto, "Multiplier of screenshake when based off suppresion buildup", params: "0 inf")]
+	[Attribute("0.5", UIWidgets.Auto,
+		"Extra flinch shake scaling from current suppression. At full suppression, shake is multiplied by (1 + this).",
+		params: "0 inf")]
 	protected float m_fFlinchShakeSuppressedMultiplier;
-
-	[Attribute("5.0", UIWidgets.Auto, "Distance up to which cover is recognized (meters)", params: "0 inf")]
+	
+	[Attribute("5.0", UIWidgets.Auto,
+		"Cover check trace length (meters). Ray is cast from player eyes toward the bullet source direction to detect blocking cover.",
+		params: "0 inf")]
 	protected float m_fCoverTraceLength;
 	
-	[Attribute("7.5", UIWidgets.Auto, "Seconds of no new suppression before recovery starts", params: "0 inf")]
+	[Attribute("7.5", UIWidgets.Auto,
+		"Recovery delay (seconds). Time without new suppression before suppression starts to decay.",
+		params: "0 inf")]
 	protected float m_fRecoveryDelay;
 	
-	[Attribute("0.2", UIWidgets.Auto, "Suppression recovery speed per second", params: "0 1")]
+	[Attribute("0.2", UIWidgets.Auto,
+		"Recovery rate (suppression units per second). 0.2 means suppression drops by 20% per second once recovery starts.",
+		params: "0 1")]
 	protected float m_fRecoveryRate;
-
-	[Attribute("2.0", UIWidgets.Auto, "Multiplier applied to projectile mass for suppression", params: "0 inf")]
+	
+	[Attribute("2.0", UIWidgets.Auto,
+		"Mass contribution scale. Suppression mass term = ProjectileMass * this.",
+		params: "0 inf")]
 	protected float m_fMassMultiplier;
 	
-	[Attribute("0.001", UIWidgets.Auto, "Multiplier applied to projectile speed for suppression", params: "0 inf")]
+	[Attribute("0.001", UIWidgets.Auto,
+		"Speed contribution scale. Suppression speed term = ProjectileSpeed * this.",
+		params: "0 inf")]
 	protected float m_fSpeedMultiplier;
 	
-	[Attribute("0.04", UIWidgets.Auto, "Global suppression multiplier per bullet", params: "0 inf")]
+	[Attribute("0.04", UIWidgets.Auto,
+		"Global scaling applied to computed flyby suppression (after mass/speed/distance).",
+		params: "0 inf")]
 	protected float m_fBaseSuppressionMultiplier;
 	
-	[Attribute("1", UIWidgets.Auto, "Suppression multiplier per bullet hitting near the player", params: "0 inf")]
+	[Attribute("1", UIWidgets.Auto,
+		"Impact suppression multiplier. Applied when a bullet impacts near the player (stronger than flyby).",
+		params: "0 inf")]
 	protected float m_fHitSuppressionMultiplier;
 	
-	[Attribute("0.5", UIWidgets.Auto, "Suppression multiplier when target is in cover (0.5 = -50%)", params: "0 inf")]
+	[Attribute("0.5", UIWidgets.Auto,
+		"Cover suppression reduction (0–1). Subtracted from the suppression multiplier when the player is considered in cover (0.5 = 50% less).",
+		params: "0 1")]
 	protected float m_fCoverMultiplier;
 
 	//! Projectiles tracked by the system
@@ -97,49 +123,83 @@ class GC_SuppressionSystem : GameSystem
 
 	protected void UpdateProjectiles()
 	{
-		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
+		SCR_ChimeraCharacter player = SCR_ChimeraCharacter.Cast(GetGame().GetPlayerController().GetControlledEntity());
 		if (!player)
 			return;
-		
-		SCR_ChimeraCharacter cc = SCR_ChimeraCharacter.Cast(player);
-		vector playerEyePos = cc.EyePosition();
-		
+	
+		vector playerEyePos = player.EyePosition();
+	
+		float maxRangeSq = m_fMaxRange * m_fMaxRange;
+		float flinchRangeSq = m_fFlinchRange * m_fFlinchRange;
+	
 		for (int i = m_aProjectiles.Count() - 1; i >= 0; i--)
 		{
 			GC_ProjectileComponent projectile = m_aProjectiles[i];
-			ProjectileMoveComponent move = ProjectileMoveComponent.Cast(projectile.GetOwner().FindComponent(ProjectileMoveComponent));
-			if(!move)
-				return;
-			
-		    vector projPos = projectile.GetOwner().GetOrigin();
-		
-		    // Check if projectile is moving toward the player
-		    float approach = vector.Dot(playerEyePos - projPos, move.GetVelocity());
-			
-		    if (approach <= 0)
-		    {
-				// Projectile is no longer approaching → check distance
-				vector flybyPos = GetFlybyPoint(projPos, projectile.position, playerEyePos);
-				float dist = vector.Distance(flybyPos, playerEyePos);
-				
-				if (dist <= m_fMaxRange)
+	
+			bool removeProjectile = false;
+	
+			IEntity owner = projectile.GetOwner();
+			if (!owner)
+				removeProjectile = true;
+			else
+			{
+				ProjectileMoveComponent move = ProjectileMoveComponent.Cast(owner.FindComponent(ProjectileMoveComponent));
+				if (!move)
+					removeProjectile = true;
+				else
 				{
-					float multi = 1;
-					if(IsInCover(projectile))
-						multi -= m_fCoverMultiplier;
-					
-					float suppression = GetBulletSuppression(projectile, dist, multi);
-					AddSuppression(suppression);
+					vector projPos = owner.GetOrigin();
+	
+					// moving toward player?
+					float approach = vector.Dot(playerEyePos - projPos, move.GetVelocity());
+	
+					if (approach > 0)
+					{
+						projectile.position = projPos;
+					}
+					else
+					{
+						removeProjectile = true;
+	
+						vector flybyPos = GetFlybyPoint(projPos, projectile.position, playerEyePos);
+						float distSq = vector.DistanceSq(flybyPos, playerEyePos);
+	
+						bool doEffects = true;
+	
+						bool isInCover = false;
+						if (distSq <= maxRangeSq)
+							isInCover = IsInCover(projectile);
+	
+						// Optional: if in vehicle and NOT in cover, require LOS to apply effects
+						if (player.IsInVehicle() && !isInCover)
+						{
+							if (!IsLineOfSight(flybyPos))
+								doEffects = false;
+						}
+	
+						if (doEffects)
+						{
+							if (distSq <= maxRangeSq)
+							{
+								float dist = Math.Sqrt(distSq);
+	
+								float multi = 1.0;
+								if (isInCover)
+									multi = Math.Clamp(multi - m_fCoverMultiplier, 0.0, 1.0);
+	
+								float suppression = GetBulletSuppression(projectile, dist, multi);
+								AddSuppression(suppression);
+							}
+	
+							if (distSq <= flinchRangeSq)
+								Flinch();
+						}
+					}
 				}
-
-				if (dist <= m_fFlinchRange)
-					Flinch();
-
-		        m_aProjectiles.Remove(i);
-		        continue;
-		    }
-
-			projectile.position = projPos;
+			}
+	
+			if (removeProjectile)
+				m_aProjectiles.Remove(i);
 		}
 	}
 	
@@ -281,10 +341,25 @@ class GC_SuppressionSystem : GameSystem
 	}
 	
 	//(m_eSuppType, source, transform, speed);
-	void HandleBulletImpact(IEntity bullet, vector direction, float distance, float speed)
+	void HandleBulletImpact(IEntity bullet, vector transform[3], float distance, float speed)
 	{
+		if (!m_bIsEnabled)
+			return;
+		
+		SCR_ChimeraCharacter player = SCR_ChimeraCharacter.Cast(GetGame().GetPlayerController().GetControlledEntity());
+		if (!player)
+			return;
+		
+		bool isInCover = IsInCover(transform[1]);
+		
+		if(player.IsInVehicle() && !isInCover)
+		{
+			if(!IsLineOfSight(transform))
+				return;
+		}
+		
 		float multi = m_fHitSuppressionMultiplier;
-		if(IsInCover(direction))
+		if(isInCover)
 			multi -= m_fCoverMultiplier;
 		
 		float suppression = GetBulletSuppression(bullet, distance, multi);
@@ -337,19 +412,13 @@ class GC_SuppressionSystem : GameSystem
 
 		vector start = player.EyePosition();
 		vector end = start - direction * m_fCoverTraceLength;
-		
-		
+
 		// Trace from eyes toward where the bullet came from
 		TraceParam tp = MakeTraceParam(start, end, TraceFlags.ENTS | TraceFlags.WORLD);
-		tp.Exclude = player;
+		tp.ExcludeArray = GetAllRelated(player);
 		
 		float fraction = GetGame().GetWorld().TraceMove(tp);
-		
-		//if(fraction < 1.0)
-		//	m_shapes.Insert(Shape.Create(ShapeType.LINE, Color.GREEN, ShapeFlags.DEFAULT, start, end));
-		//else
-		//	m_shapes.Insert(Shape.Create(ShapeType.LINE, Color.RED, ShapeFlags.DEFAULT, start, end));
-		
+
 		return fraction < 1.0;
 	}
 	
@@ -391,6 +460,61 @@ class GC_SuppressionSystem : GameSystem
 		float fraction = GetGame().GetWorld().TraceMove(tp);
 		
 		return fraction < 1.0;
+	}
+	
+	protected bool IsLineOfSight(vector position)
+	{
+		PlayerController pc = GetGame().GetPlayerController();
+		if (!pc)
+			return false;
+		
+		SCR_ChimeraCharacter player = SCR_ChimeraCharacter.Cast(pc.GetControlledEntity());
+		if (!player)
+			return false;
+		
+		TraceParam tp = MakeTraceParam(player.EyePosition(), position, TraceFlags.ENTS | TraceFlags.WORLD);
+		tp.ExcludeArray = GetAllRelated(player);
+		
+		float fraction = GetGame().GetWorld().TraceMove(tp);
+
+		return fraction == 1.0;
+	}
+	
+	protected bool IsLineOfSight(vector transform[3])
+	{
+		PlayerController pc = GetGame().GetPlayerController();
+		if (!pc)
+			return false;
+	
+		SCR_ChimeraCharacter player = SCR_ChimeraCharacter.Cast(pc.GetControlledEntity());
+		if (!player)
+			return false;
+
+		vector start = player.EyePosition();
+	
+		float epsilon = 0.01;
+		vector endPos = transform[0] + transform[2] * epsilon;
+
+		TraceParam tp = MakeTraceParam(start, endPos, TraceFlags.ENTS | TraceFlags.WORLD);
+		tp.ExcludeArray = GetAllRelated(player);
+	
+		float fraction = GetGame().GetWorld().TraceMove(tp);
+	
+		return fraction == 1.0;
+	}
+	
+	protected array<IEntity> GetAllRelated(IEntity parent)
+	{
+		array<IEntity> childern = {parent};
+	
+		IEntity child = parent.GetChildren();
+		while (child)
+		{
+			childern.Insert(child);
+			child = child.GetSibling();
+		}
+	
+		return childern;
 	}
 
 	protected vector GetFlybyPoint(vector currPos, vector prevPos, vector playerPos)
@@ -447,14 +571,12 @@ class GC_SuppressionSystem : GameSystem
 	}
 	
 	//! Debug shapes, remove later
-	/*
 	protected ref array<ref Shape> m_shapes = {};
 	protected void CreateDebugCircle(vector position, int color = Color.RED, bool clear = false)
 	{
 		if (clear)
 			m_shapes.Clear();
 		
-		m_shapes.Insert(Shape.CreateSphere(color, ShapeFlags.DEFAULT, position, 0.2));
+		m_shapes.Insert(Shape.CreateSphere(color, ShapeFlags.DEFAULT, position, 0.05));
 	}
-	*/
 }
