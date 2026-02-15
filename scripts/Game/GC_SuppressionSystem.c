@@ -484,21 +484,6 @@ class GC_SuppressionSystem : GameSystem
 		
 		float fraction = GetGame().GetWorld().TraceMove(tp);
 
-		int col = Color.RED;
-		if (fraction == 1.0)
-			col = Color.GREEN;
-	
-		m_shapes.Insert(Shape.Create(ShapeType.LINE, col, ShapeFlags.DEFAULT, tp.Start, tp.End));
-		
-		vector tracePos = tp.Start + (tp.End - tp.Start) * fraction;
-		CreateDebugCircle(tracePos, col);
-		if (fraction != 1.0)
-		{
-			PrintFormat("GC | Hit: %1", tp.TraceEnt);
-			PrintFormat("GC | Parent: %1", tp.TraceEnt.GetParent());
-			PrintFormat("GC | ExcludeArray: %1", excluded);
-		}
-		
 		return fraction == 1.0;
 	}
 	
