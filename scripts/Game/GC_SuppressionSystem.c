@@ -6,7 +6,7 @@ class GC_SuppressionSystem : GameSystem
 	protected float m_fMaxRange;
 	
 	[Attribute("10", UIWidgets.Auto,
-		"Flyby inner radius (meters). Inside this distance, flyby suppression is at full strength before falling off toward MaxRange.",
+		"Distance from source (meters). Inside this distance, suppression is not applied.",
 		params: "0 inf")]
 	protected float m_fMinRange;
 	
@@ -132,6 +132,8 @@ class GC_SuppressionSystem : GameSystem
 		float maxRangeSq = m_fMaxRange * m_fMaxRange;
 		float flinchRangeSq = m_fFlinchRange * m_fFlinchRange;
 	
+		bool isInVehicle = player.IsInVehicle();
+	
 		for (int i = m_aProjectiles.Count() - 1; i >= 0; i--)
 		{
 			GC_ProjectileComponent projectile = m_aProjectiles[i];
@@ -149,8 +151,7 @@ class GC_SuppressionSystem : GameSystem
 				else
 				{
 					vector projPos = owner.GetOrigin();
-	
-					// moving toward player?
+
 					float approach = vector.Dot(playerEyePos - projPos, move.GetVelocity());
 	
 					if (approach > 0)
@@ -160,39 +161,41 @@ class GC_SuppressionSystem : GameSystem
 					else
 					{
 						removeProjectile = true;
-	
+
 						vector flybyPos = GetFlybyPoint(projPos, projectile.position, playerEyePos);
 						float distSq = vector.DistanceSq(flybyPos, playerEyePos);
 	
-						bool doEffects = true;
+						bool inSuppRange = distSq <= maxRangeSq;
 	
-						bool isInCover = false;
-						if (distSq <= maxRangeSq)
-							isInCover = IsInCover(projectile);
-	
-						// Optional: if in vehicle and NOT in cover, require LOS to apply effects
-						if (player.IsInVehicle() && !isInCover)
+						if (inSuppRange)
 						{
-							if (!IsLineOfSight(flybyPos))
-								doEffects = false;
-						}
+							bool doEffects = true;
 	
-						if (doEffects)
-						{
-							if (distSq <= maxRangeSq)
+							if (isInVehicle)
 							{
-								float dist = Math.Sqrt(distSq);
-	
-								float multi = 1.0;
-								if (isInCover)
-									multi = Math.Clamp(multi - m_fCoverMultiplier, 0.0, 1.0);
-	
-								float suppression = GetBulletSuppression(projectile, dist, multi);
-								AddSuppression(suppression);
+								if (!IsLineOfSight(flybyPos))
+									doEffects = false;
 							}
 	
-							if (distSq <= flinchRangeSq)
-								Flinch();
+							if (doEffects)
+							{
+								if (inSuppRange)
+								{
+									bool isInCover = IsInCover(projectile);
+	
+									float dist = Math.Sqrt(distSq);
+	
+									float multi = 1.0;
+									if (isInCover)
+										multi = Math.Clamp(multi - m_fCoverMultiplier, 0.0, 1.0);
+	
+									float suppression = GetBulletSuppression(projectile, dist, multi);
+									AddSuppression(suppression);
+								}
+	
+								if (distSq <= flinchRangeSq)
+									Flinch();
+							}
 						}
 					}
 				}
@@ -413,12 +416,14 @@ class GC_SuppressionSystem : GameSystem
 		vector start = player.EyePosition();
 		vector end = start - direction * m_fCoverTraceLength;
 
+		array<IEntity> excluded = GetAllRelated(player);
+		
 		// Trace from eyes toward where the bullet came from
 		TraceParam tp = MakeTraceParam(start, end, TraceFlags.ENTS | TraceFlags.WORLD);
-		tp.ExcludeArray = GetAllRelated(player);
+		tp.ExcludeArray = excluded;
 		
 		float fraction = GetGame().GetWorld().TraceMove(tp);
-
+		
 		return fraction < 1.0;
 	}
 	
@@ -472,11 +477,28 @@ class GC_SuppressionSystem : GameSystem
 		if (!player)
 			return false;
 		
+		array<IEntity> excluded = GetAllRelated(player);
+		
 		TraceParam tp = MakeTraceParam(player.EyePosition(), position, TraceFlags.ENTS | TraceFlags.WORLD);
-		tp.ExcludeArray = GetAllRelated(player);
+		tp.ExcludeArray = excluded;
 		
 		float fraction = GetGame().GetWorld().TraceMove(tp);
 
+		int col = Color.RED;
+		if (fraction == 1.0)
+			col = Color.GREEN;
+	
+		m_shapes.Insert(Shape.Create(ShapeType.LINE, col, ShapeFlags.DEFAULT, tp.Start, tp.End));
+		
+		vector tracePos = tp.Start + (tp.End - tp.Start) * fraction;
+		CreateDebugCircle(tracePos, col);
+		if (fraction != 1.0)
+		{
+			PrintFormat("GC | Hit: %1", tp.TraceEnt);
+			PrintFormat("GC | Parent: %1", tp.TraceEnt.GetParent());
+			PrintFormat("GC | ExcludeArray: %1", excluded);
+		}
+		
 		return fraction == 1.0;
 	}
 	
@@ -494,9 +516,10 @@ class GC_SuppressionSystem : GameSystem
 	
 		float epsilon = 0.01;
 		vector endPos = transform[0] + transform[2] * epsilon;
-
+		array<IEntity> excluded = GetAllRelated(player);
+		
 		TraceParam tp = MakeTraceParam(start, endPos, TraceFlags.ENTS | TraceFlags.WORLD);
-		tp.ExcludeArray = GetAllRelated(player);
+		tp.ExcludeArray = excluded;
 	
 		float fraction = GetGame().GetWorld().TraceMove(tp);
 	
