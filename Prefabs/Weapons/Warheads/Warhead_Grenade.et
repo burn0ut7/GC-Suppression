@@ -1,0 +1,13 @@
+GenericEntity : "{9B5FF7EECAD376FA}Prefabs/Weapons/Warheads/Warhead_Base.et" {
+ ID "9D9BE68EA2672F76"
+ components {
+  BaseTriggerComponent "{55129E81CBAA1390}" {
+   PROJECTILE_EFFECTS {
+    GC_SuppressionEffect "{68ED7794D2CC3DAA}" {
+     m_eType EXPLOSIVE
+     m_sName "Grenade"
+    }
+   }
+  }
+ }
+}
