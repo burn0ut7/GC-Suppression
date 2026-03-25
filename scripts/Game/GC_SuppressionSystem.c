@@ -1,5 +1,26 @@
 class GC_SuppressionSystem : GameSystem
 {
+	// General
+	[Attribute("5.0", UIWidgets.Auto,
+		"Cover check trace length (meters). Ray is cast from player eyes toward the bullet source direction to detect blocking cover.",
+		params: "0 inf", category: "Suppression")]
+	protected float m_fCoverTraceLength;
+	
+	[Attribute("7.5", UIWidgets.Auto,
+		"Recovery delay (seconds). Time without new suppression before suppression starts to decay.",
+		params: "0 inf", category: "Suppression")]
+	protected float m_fRecoveryDelay;
+	
+	[Attribute("0.2", UIWidgets.Auto,
+		"Recovery rate (suppression units per second). 0.2 means suppression drops by 20% per second once recovery starts.",
+		params: "0 1", category: "Suppression")]
+	protected float m_fRecoveryRate;
+	
+	[Attribute("0.5", UIWidgets.Auto,
+		"Cover suppression reduction (0–1). Subtracted from the suppression multiplier when the player is considered in cover (0.5 = 50% less).",
+		params: "0 1", category: "Suppression")]
+	protected float m_fCoverMultiplier;
+	
 	// Projectiles
 	[Attribute("10", UIWidgets.Auto,
 	"Flyby outer radius (meters). Suppression from a passing bullet fades to 0 at this distance (measured from player eye to closest approach).",
@@ -45,28 +66,6 @@ class GC_SuppressionSystem : GameSystem
 		"Impact suppression multiplier. Applied when a bullet impacts near the player (stronger than flyby).",
 		params: "0 inf", category: "Projectile")]
 	protected float m_fHitSuppressionMultiplier;
-	
-	
-	// General
-	[Attribute("5.0", UIWidgets.Auto,
-		"Cover check trace length (meters). Ray is cast from player eyes toward the bullet source direction to detect blocking cover.",
-		params: "0 inf", category: "Suppression")]
-	protected float m_fCoverTraceLength;
-	
-	[Attribute("7.5", UIWidgets.Auto,
-		"Recovery delay (seconds). Time without new suppression before suppression starts to decay.",
-		params: "0 inf", category: "Suppression")]
-	protected float m_fRecoveryDelay;
-	
-	[Attribute("0.2", UIWidgets.Auto,
-		"Recovery rate (suppression units per second). 0.2 means suppression drops by 20% per second once recovery starts.",
-		params: "0 1", category: "Suppression")]
-	protected float m_fRecoveryRate;
-	
-	[Attribute("0.5", UIWidgets.Auto,
-		"Cover suppression reduction (0–1). Subtracted from the suppression multiplier when the player is considered in cover (0.5 = 50% less).",
-		params: "0 1", category: "Suppression")]
-	protected float m_fCoverMultiplier;
 	
 	// Explosion
 	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to explosive payload strength before impulse is calculated.", params: "0 inf", category: "Explosion")]
@@ -119,6 +118,7 @@ class GC_SuppressionSystem : GameSystem
 	protected float m_fExplosionScreenShakeMaxOutTime;
 
 	//Ragdoll
+	/*
 	[Attribute("1", UIWidgets.CheckBox, "Enable explosion ragdolling when the player is hit by a strong enough blast.", category: "Explosion Ragdoll")]
 	protected bool m_bEnableExplosionRagdoll;
 	
@@ -136,7 +136,7 @@ class GC_SuppressionSystem : GameSystem
 	
 	[Attribute("0.35", UIWidgets.Auto, "Extra upward force ratio added to explosion ragdoll impulse.", params: "0 inf", category: "Explosion Ragdoll")]
 	protected float m_fExplosionRagdollUpForceMultiplier;
-
+	*/
 	
 	// Projectiles tracked by the system
 	protected ref array<GC_ProjectileComponent> m_aProjectiles = {};
@@ -166,27 +166,7 @@ class GC_SuppressionSystem : GameSystem
 			return;
 
 		pc.m_OnControlledEntityChanged.Insert(OnControlledEntityChanged);
-		
-		GetGame().GetInputManager().AddActionListener("CharacterMelee", EActionTrigger.DOWN, Test1);
 	}
-	
-	void Test1()
-	{
-		Print("GC | Test1");
-
-		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
-
-		SCR_CharacterControllerComponent cc = SCR_CharacterControllerComponent.Cast(player.FindComponent(SCR_CharacterControllerComponent));
-
-		Physics physics = player.GetPhysics();
-		physics.ClearForces();
-		physics.SetVelocity(vector.Zero);
-		physics.ApplyImpulse("0 500 0");
-		
-		
-		//RagdollPlayer(100, vector.Zero)
-	}
-
 	
 	void Delayed()
 	{
@@ -509,8 +489,6 @@ class GC_SuppressionSystem : GameSystem
 	
 	void HandleExplosion(IEntity source, vector transform[3], IEntity explosion, float multiplier)
 	{
-		PrintFormat("GC | HandleExplosion: %1", explosion);
-	
 		if (!explosion)
 			return;
 	
@@ -528,12 +506,12 @@ class GC_SuppressionSystem : GameSystem
 		
 		AddSuppression(suppression);
 		
-		ExplosionScreenShake(impulse * 0.75);
+		ExplosionScreenShake(impulse * multiplier);
 
 		//ragdoll?
-		
 		PrintFormat(
-			"GC | Explosion | impulse:%1 inputMulti:%2 suppression:%3",
+			"GC | Explosion | explosion:%1 impulse:%2 inputMulti:%3 suppression:%4",
+			explosion,
 			impulse,
 			multiplier,
 			suppression
@@ -542,6 +520,7 @@ class GC_SuppressionSystem : GameSystem
 	
 	//Vehicle check
 	//Alive check
+	/*
 	protected void RagdollPlayer(float impulse, vector direction)
 	{
 		if (!m_bEnableExplosionRagdoll)
@@ -594,7 +573,8 @@ class GC_SuppressionSystem : GameSystem
 		);
 		
 	}
-
+	*/
+	
 	void HandleBulletImpact(IEntity bullet, vector transform[3], float multiplier, float distance, float speed)
 	{
 		if (!m_bIsEnabled)
