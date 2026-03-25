@@ -1,9 +1,9 @@
-GenericEntity : "{1126AD9D919F82FF}Prefabs/Weapons/Warheads/Warhead_Explosive_HE.et" {
+GenericEntity {
  ID "9D9BE68EA2672F76"
  components {
   BaseTriggerComponent "{55129E81CBAA1390}" {
    PROJECTILE_EFFECTS {
-    GC_SuppressionEffect "{68EE9A4B24490547}" {
+    GC_SuppressionEffect "{68F232AF40717CE3}" {
      m_eType EXPLOSIVE
     }
    }

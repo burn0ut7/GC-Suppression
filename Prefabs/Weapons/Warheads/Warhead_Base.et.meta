@@ -1,5 +1,5 @@
 MetaFileClass {
- Name "{C1A2BB91E2E4A8D3}Prefabs/Weapons/Warheads/Warhead_Grenade.et"
+ Name "{9B5FF7EECAD376FA}Prefabs/Weapons/Warheads/Warhead_Base.et"
  Configurations {
   EntityTemplateResourceClass PC {
   }

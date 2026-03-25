@@ -1,5 +1,6 @@
 class GC_SuppressionSystem : GameSystem
 {
+	// Projectiles
 	[Attribute("10", UIWidgets.Auto,
 	"Flyby outer radius (meters). Suppression from a passing bullet fades to 0 at this distance (measured from player eye to closest approach).",
 	params: "0 inf", category: "Projectile")]
@@ -45,6 +46,8 @@ class GC_SuppressionSystem : GameSystem
 		params: "0 inf", category: "Projectile")]
 	protected float m_fHitSuppressionMultiplier;
 	
+	
+	// General
 	[Attribute("5.0", UIWidgets.Auto,
 		"Cover check trace length (meters). Ray is cast from player eyes toward the bullet source direction to detect blocking cover.",
 		params: "0 inf", category: "Suppression")]
@@ -65,6 +68,7 @@ class GC_SuppressionSystem : GameSystem
 		params: "0 1", category: "Suppression")]
 	protected float m_fCoverMultiplier;
 	
+	// Explosion
 	[Attribute("1.0", UIWidgets.Auto, "Multiplier applied to explosive payload strength before impulse is calculated.", params: "0 inf", category: "Explosion")]
 	protected float m_fExplosionPayloadMultiplier;
 	
@@ -76,33 +80,63 @@ class GC_SuppressionSystem : GameSystem
 	
 	[Attribute("1.5", UIWidgets.Auto, "Power used for explosion distance falloff. Lower values carry impulse farther, higher values drop it faster.", params: "0.001 inf", category: "Explosion")]
 	protected float m_fExplosionDistanceFalloffPower;
-	
+
 	[Attribute("1.0", UIWidgets.Auto, "Impulse at which explosion suppression starts becoming noticeable.", params: "0 inf", category: "Explosion")]
 	protected float m_fExplosionSuppressionStartImpulse;
 	
-	[Attribute("45", UIWidgets.Auto, "Impulse that counts as extreme and results in full suppression.", params: "0.001 inf", category: "Explosion")]
+	[Attribute("55", UIWidgets.Auto, "Impulse that counts as extreme and results in full suppression.", params: "0.001 inf", category: "Explosion")]
 	protected float m_fExplosionSuppressionFullImpulse;
+	
+	[Attribute("5", UIWidgets.Auto, "Minimum impulse required to cause suppression.", params: "0 inf", category: "Explosion")]
+	protected float m_fExplosionSuppressionMinimumImpulse;
 	
 	[Attribute("1.0", UIWidgets.Auto, "Controls how quickly suppression ramps from start impulse to full impulse. Higher values keep low impulses weaker for longer.", params: "0.001 inf", category: "Explosion")]
 	protected float m_fExplosionSuppressionPower;
 	
-	[Attribute("1", UIWidgets.CheckBox, "Enable explosion ragdolling when the player is hit by a strong enough blast.", category: "Explosion")]
+	[Attribute("0.5", UIWidgets.Auto, "How much explosion suppression is reduced when the player is behind cover or line of sight is blocked. 0 = no reduction, 1 = fully blocked.", params: "0 1 0.01", category: "Explosion")]
+	protected float m_fExplosionCoverMultiplier;
+	
+	// Screen shake
+	[Attribute("1", UIWidgets.CheckBox, "Enable screen shake for explosions", category: "Explosion Screen Shake")]
+	protected bool m_bExplosionScreenShakeEnabled;
+	
+	[Attribute("1.0", UIWidgets.Auto, "General multiplier applied to final shake amount. 0 = off", params: "0 inf 0.01", category: "Explosion Screen Shake")]
+	protected float m_fExplosionScreenShakeMultiplier;
+	
+	[Attribute("15", UIWidgets.Auto, "Maximum shake amount to lerp to from explosion strength", params: "0 inf 0.01", category: "Explosion Screen Shake")]
+	protected float m_fExplosionScreenShakeMaxAmount;
+	
+	[Attribute("5", UIWidgets.Auto, "Minimum explosion impulse required before screen shake starts", params: "0 inf 0", category: "Explosion Screen Shake")]
+	protected float m_fExplosionScreenShakeMinImpulse;
+	
+	[Attribute("45", UIWidgets.Auto, "Explosion impulse that reaches full screen shake strength", params: "0 inf 0", category: "Explosion Screen Shake")]
+	protected float m_fExplosionScreenShakeMaxImpulse;
+	
+	[Attribute("0.25", UIWidgets.Auto, "Maximum sustain time for explosion screen shake", params: "0 inf 0.001", category: "Explosion Screen Shake")]
+	protected float m_fExplosionScreenShakeMaxSustainTime;
+	
+	[Attribute("0.1", UIWidgets.Auto, "Maximum out time for explosion screen shake", params: "0 inf 0.001", category: "Explosion Screen Shake")]
+	protected float m_fExplosionScreenShakeMaxOutTime;
+
+	//Ragdoll
+	[Attribute("1", UIWidgets.CheckBox, "Enable explosion ragdolling when the player is hit by a strong enough blast.", category: "Explosion Ragdoll")]
 	protected bool m_bEnableExplosionRagdoll;
 	
-	[Attribute("35.0", UIWidgets.Auto, "Minimum explosion impulse required to ragdoll the player.", params: "0 inf", category: "Explosion")]
+	[Attribute("35.0", UIWidgets.Auto, "Minimum explosion impulse required to ragdoll the player.", params: "0 inf", category: "Explosion Ragdoll")]
 	protected float m_fExplosionRagdollMinImpulse;
 	
-	[Attribute("120.0", UIWidgets.Auto, "Explosion impulse that results in maximum ragdoll throw force.", params: "0.001 inf", category: "Explosion")]
+	[Attribute("75.0", UIWidgets.Auto, "Explosion impulse that results in maximum ragdoll throw force.", params: "0.001 inf", category: "Explosion Ragdoll")]
 	protected float m_fExplosionRagdollMaxImpulse;
 	
-	[Attribute("350.0", UIWidgets.Auto, "Minimum impulse force applied to the ragdolled player.", params: "0 inf", category: "Explosion")]
+	[Attribute("150.0", UIWidgets.Auto, "Minimum impulse force applied to the ragdolled player.", params: "0 inf", category: "Explosion Ragdoll")]
 	protected float m_fExplosionRagdollMinForce;
 	
-	[Attribute("1200.0", UIWidgets.Auto, "Maximum impulse force applied to the ragdolled player.", params: "0 inf", category: "Explosion")]
+	[Attribute("500.0", UIWidgets.Auto, "Maximum impulse force applied to the ragdolled player.", params: "0 inf", category: "Explosion Ragdoll")]
 	protected float m_fExplosionRagdollMaxForce;
 	
-	[Attribute("0.35", UIWidgets.Auto, "Extra upward force ratio added to explosion ragdoll impulse.", params: "0 inf", category: "Explosion")]
+	[Attribute("0.35", UIWidgets.Auto, "Extra upward force ratio added to explosion ragdoll impulse.", params: "0 inf", category: "Explosion Ragdoll")]
 	protected float m_fExplosionRagdollUpForceMultiplier;
+
 	
 	// Projectiles tracked by the system
 	protected ref array<GC_ProjectileComponent> m_aProjectiles = {};
@@ -139,10 +173,31 @@ class GC_SuppressionSystem : GameSystem
 	void Test1()
 	{
 		Print("GC | Test1");
-		RagdollPlayer(150, "0 0 0");
 
+		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
+
+		SCR_CharacterControllerComponent cc = SCR_CharacterControllerComponent.Cast(player.FindComponent(SCR_CharacterControllerComponent));
+
+		Physics physics = player.GetPhysics();
+		physics.ClearForces();
+		physics.SetVelocity(vector.Zero);
+		physics.ApplyImpulse("0 500 0");
+		
+		
+		//RagdollPlayer(100, vector.Zero)
 	}
+
 	
+	void Delayed()
+	{
+		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
+		Physics physics = player.GetPhysics();
+		player.Update();
+		physics.SetVelocity("0 10 0");
+		player.Update();
+		physics.ApplyImpulse("0 500 0");
+	}
+
 	void OnControlledEntityChanged(IEntity from, IEntity to)
 	{
 		SetEnabled(true);
@@ -366,16 +421,6 @@ class GC_SuppressionSystem : GameSystem
 	
 		float suppression = Math.Pow(normalized, power);
 		suppression = suppression * multiplier;
-	
-		PrintFormat(
-			"GC | ExplosionSuppression | impulse:%1 start:%2 full:%3 normalized:%4 power:%5 suppression:%6",
-			impulse,
-			startImpulse,
-			fullImpulse,
-			normalized,
-			power,
-			suppression
-		);
 		
 		return Math.Clamp(suppression, 0.0, 1.0);
 	}
@@ -427,38 +472,76 @@ class GC_SuppressionSystem : GameSystem
 		}
 	}
 	
-	protected void ScreenShake(float magnitude = 1, float inTime = 0.01, float sustainTime = 0.1, float outTime = 0.24)
+	protected void ScreenShake(float magnitude = 1.0, float inTime = 0.01, float sustainTime = 0.1, float outTime = 0.24)
 	{
-		CameraBase camera = GetGame().GetCameraManager().CurrentCamera();
+		if (magnitude <= 0)
+			return;
+		
 		SCR_CameraShakeManagerComponent.AddCameraShake(magnitude, magnitude, inTime, sustainTime, outTime);
 	}
 	
-	void HandleExplosion(IEntity source, IEntity explosion, vector transform[3])
+	protected float ExplosionScreenShake(float impulse)
 	{
-		PrintFormat("GC | HandleExplosion: %1", explosion);
+		if (!m_bExplosionScreenShakeEnabled)
+			return 0;
 		
-		float impulse = GetExplosiveImpulse(explosion);
+		float minImpulse = Math.Max(m_fExplosionScreenShakeMinImpulse, 0.0);
+		float maxImpulse = Math.Max(m_fExplosionScreenShakeMaxImpulse, minImpulse + 0.001);
+	
+		if (impulse <= 0 || impulse < minImpulse)
+			return 0;
+	
+		float normalized = Math.InverseLerp(minImpulse, maxImpulse, impulse);
+		normalized = Math.Clamp(normalized, 0.0, 1.0);
+	
+		float amount = Math.Lerp(0.0, m_fExplosionScreenShakeMaxAmount, normalized);
+		amount = amount * m_fExplosionScreenShakeMultiplier;
 		
-		float suppression = GetExplosionSuppression(impulse);
-		//if(suppression < 0.01)
-		//	return;
+		float sustainTime = Math.Lerp(0.1, m_fExplosionScreenShakeMaxSustainTime, normalized);
+		float outTime = Math.Lerp(0.0, m_fExplosionScreenShakeMaxOutTime, normalized);
+	
+		ScreenShake(amount, 0.01, sustainTime, outTime);
 		
-		//Cover check
-		float multiplier = 1.0;
-		bool isLOS = IsLineOfSight(transform, {source});
-		if(!isLOS)
-			multiplier = 0.5;
-
-		//ragdoll
+		PrintFormat("GC | ExplosionScreenShake: impulse:%1, amount:%2, sustainTime:%3", impulse, amount, sustainTime);
 		
-		
-		
-		//Screen shake
-		
-		AddSuppression(suppression);
+		return amount;
 	}
 	
-	//position/direction/normal
+	void HandleExplosion(IEntity source, vector transform[3], IEntity explosion, float multiplier)
+	{
+		PrintFormat("GC | HandleExplosion: %1", explosion);
+	
+		if (!explosion)
+			return;
+	
+		float impulse = GetExplosiveImpulse(explosion);
+		if (impulse <= 0 || impulse < m_fExplosionSuppressionMinimumImpulse)
+			return;
+	
+		bool isLOS = IsLineOfSight(transform, {source});
+		if (!isLOS)
+			multiplier *= m_fExplosionCoverMultiplier;
+	
+		float suppression = GetExplosionSuppression(impulse, multiplier);
+		if (suppression <= 0.01)
+			return;
+		
+		AddSuppression(suppression);
+		
+		ExplosionScreenShake(impulse * 0.75);
+
+		//ragdoll?
+		
+		PrintFormat(
+			"GC | Explosion | impulse:%1 inputMulti:%2 suppression:%3",
+			impulse,
+			multiplier,
+			suppression
+		);
+	}
+	
+	//Vehicle check
+	//Alive check
 	protected void RagdollPlayer(float impulse, vector direction)
 	{
 		if (!m_bEnableExplosionRagdoll)
@@ -474,7 +557,7 @@ class GC_SuppressionSystem : GameSystem
 		SCR_CharacterControllerComponent cc = SCR_CharacterControllerComponent.Cast(player.FindComponent(SCR_CharacterControllerComponent));
 		if (!cc)
 			return;
-	
+		
 		float maxImpulse = m_fExplosionRagdollMaxImpulse;
 		if (maxImpulse <= m_fExplosionRagdollMinImpulse)
 			maxImpulse = m_fExplosionRagdollMinImpulse + 0.001;
@@ -492,18 +575,15 @@ class GC_SuppressionSystem : GameSystem
 		throwDirection = throwDirection.Normalized();
 	
 		vector throwImpulse = throwDirection * throwForce;
-	
-		cc.Ragdoll();
-		cc.RefreshRagdoll(1);
-		player.Update();
-	
+		
 		Physics physics = player.GetPhysics();
-		if (!physics)
-			return;
-	
 		physics.ClearForces();
+		physics.SetVelocity(vector.Zero);
 		physics.ApplyImpulse(throwImpulse);
-	
+		
+		cc.RefreshRagdoll(1);
+		cc.Ragdoll();
+
 		PrintFormat(
 			"GC | ExplosionRagdoll | impulse:%1 normalized:%2 throwForce:%3 direction:%4 throwImpulse:%5",
 			impulse,
@@ -512,10 +592,10 @@ class GC_SuppressionSystem : GameSystem
 			throwDirection,
 			throwImpulse
 		);
+		
 	}
-	
-	//(m_eSuppType, source, transform, speed);
-	void HandleBulletImpact(IEntity bullet, vector transform[3], float distance, float speed)
+
+	void HandleBulletImpact(IEntity bullet, vector transform[3], float multiplier, float distance, float speed)
 	{
 		if (!m_bIsEnabled)
 			return;
@@ -536,10 +616,10 @@ class GC_SuppressionSystem : GameSystem
 		if(isInCover)
 			multi -= m_fCoverMultiplier;
 		
+		multi *= multiplier;
+		
 		float suppression = GetBulletSuppression(bullet, distance, multi);
 		AddSuppression(suppression);
-		
-		//PrintFormat("GC | HandleBulletImpact: %1 - %2 - %3", bullet, distance, speed);
 	}
 	
 	void RegisterProjectile(IEntity projectile)
@@ -564,7 +644,6 @@ class GC_SuppressionSystem : GameSystem
 
 		projComp.position = projectile.GetOrigin();
 		
-		//PrintFormat("GC | RegisterProjectile: %1", projComp);
 		m_aProjectiles.Insert(projComp);
 	}
 	
@@ -681,14 +760,7 @@ class GC_SuppressionSystem : GameSystem
 		tp.ExcludeArray = excluded;
 	
 		float fraction = GetGame().GetWorld().TraceMove(tp);
-		
-		if(fraction == 1)
-			CreateDebugLine(start, endPos, Color.GREEN);
-		else
-			CreateDebugLine(start, endPos);
-		
-		//PrintFormat("GC | IsLineOfSight | Hit:%1", tp.TraceEnt);
-		
+
 		return fraction == 1.0;
 	}
 	
@@ -744,9 +816,7 @@ class GC_SuppressionSystem : GameSystem
 		float attenuation = 1.0 / Math.Pow(scaledDistance, falloffPower);
 		float impulse = scaledPayload * attenuation;
 		impulse = impulse * m_fExplosionImpulseMultiplier;
-	
-		PrintFormat("GC | payload:%1 distance:%2 attenuation:%3 impulse:%4", scaledPayload, scaledDistance, attenuation, impulse);
-		
+
 		return Math.Max(impulse, 0);
 	}
 		

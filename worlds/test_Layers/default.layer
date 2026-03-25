@@ -62,6 +62,12 @@ $grp GenericEntity : "{33CBDE73AB48172A}Prefabs/Weapons/Explosives/DemoBlock_M11
  {
   coords 144.1 1 130.55
  }
+ {
+  coords 133.519 1 135.939
+ }
+}
+SCR_ChimeraCharacter : "{37578B1666981FCE}Prefabs/Characters/Core/Character_Base.et" {
+ coords 121.858 1 118.807
 }
 Projectile : "{38BAE094333E31BF}Prefabs/Weapons/Ammo/Ammo_Shell_81mm_HE_M821.et" {
  coords 127.724 1 125.88
@@ -86,6 +92,10 @@ $grp GenericEntity : "{3E413771E1834D2F}Prefabs/Weapons/Rifles/M16/Rifle_M16A2.e
   coords 133.428 1 127.831
  }
 }
+SCR_DestructibleBuildingEntity : "{54F1C704EB440885}Prefabs/Structures/Houses/Town/House_Town_E_2I02/House_Town_E_2I02.et" {
+ coords 136.03 0 145.419
+ angles 0 0 0
+}
 GenericEntity : "{645C73791ECA1698}Prefabs/Weapons/Grenades/Grenade_RGD5.et" {
  coords 126.632 1.053 125.77
  angles 0 43.522 0
@@ -104,9 +114,6 @@ $grp Vehicle : "{81FDAD5EB644CC3D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transpo
  M923A1_transport_covered3 {
   coords 108.107 1 145.477
  }
-}
-GenericEntity : "{8C3C62C58D2DBEDA}Prefabs/Weapons/Warheads/Warhead_HEAT.et" {
- coords 125.025 1 123.149
 }
 $grp GenericEntity : "{8FDC6AA92A0DFADC}Prefabs/Structures/Walls/Brick/BrickWall_02/dst/Brick_wall_02_2m_dst_01.et" {
  {
@@ -145,17 +152,33 @@ $grp GenericEntity : "{8FDC6AA92A0DFADC}Prefabs/Structures/Walls/Brick/BrickWall
   coords 140.467 3.174 133.669
   angles 0 -177.503 0
  }
+ {
+  coords 136.549 0.343 122.785
+  angles 0 -90 0
+ }
+ {
+  coords 136.549 0.343 120.785
+  angles 0 -90 0
+ }
+ {
+  coords 157.992 1 127.405
+  angles 0 -90 0
+ }
+ {
+  coords 157.992 1 125.405
+  angles 0 -90 0
+ }
+ {
+  coords 157.992 1 123.405
+  angles 0 -90 0
+ }
+ {
+  coords 157.992 1 121.405
+  angles 0 -90 0
+ }
 }
 Projectile : "{9C1E802A384C6F9B}Prefabs/Weapons/Ammo/Ammo_556x45_AP_M995.et" {
  coords 123.14 1 126.067
-}
-$grp GenericEntity : "{9C7B7B7ECDC3A596}Prefabs/Weapons/Warheads/Warhead_Grenade_M67.et" {
- {
-  coords 125.312 1 124.287
- }
- {
-  coords 125.323 1 124.742
- }
 }
 GenericEntity : "{9DB69176CEF0EE97}Prefabs/Weapons/Grenades/Smoke_ANM8HC.et" {
  coords 126.86 1.083 125.76

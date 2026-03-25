@@ -10,8 +10,8 @@ class GC_SuppressionEffect : BaseProjectileEffect
 	[Attribute("0", UIWidgets.ComboBox, "Type of suppression to apply", "", ParamEnumArray.FromEnum(GC_ESuppressionType) )]
 	GC_ESuppressionType m_eType;
 	
-	[Attribute("1", UIWidgets.Auto, "Is suppression on this prefab enabled")]
-	protected bool m_bEnabled;
+	[Attribute("1", UIWidgets.Auto, "Suppression effect multipled from this source", params: "0 inf")]
+	protected float m_fMultiplier;
 
 	protected IEntity m_Owner;
 	
@@ -27,9 +27,6 @@ class GC_SuppressionEffect : BaseProjectileEffect
 	
 	void HandleEffect(IEntity source, vector transform[3], Instigator instigator, float speed)
 	{
-		if(!m_bEnabled)
-			return;
-		
 		if (!source)
 			return;
 
@@ -66,7 +63,7 @@ class GC_SuppressionEffect : BaseProjectileEffect
 		if (distance > suppr.GetMaxRange())
 			return;
 
-		suppr.HandleBulletImpact(source, transform, distance, speed);
+		suppr.HandleBulletImpact(source, transform, m_fMultiplier, distance, speed);
 	}
 	
 	protected void HandleExplosive(IEntity source, vector transform[3])
@@ -75,6 +72,6 @@ class GC_SuppressionEffect : BaseProjectileEffect
 		if (!suppr)
 			return;
 		
-		suppr.HandleExplosion(source, m_Owner, transform);
+		suppr.HandleExplosion(source, transform, m_Owner, m_fMultiplier);
 	}
 }
