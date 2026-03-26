@@ -23,7 +23,7 @@ FrameWidgetClass {
      Color 0 0 0 1
      Size 1920 1080
      Mask "{77CF24D5CA2DB63F}UI/Textures/ScreenEffects/Suppression/supressionVignette2.edds"
-     "Transition width" 0.65
+     "Transition width" 1
      Progress 0
     }
     ImageWidgetClass "{6853047AFC9B283C}" {

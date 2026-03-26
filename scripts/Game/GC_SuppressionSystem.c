@@ -6,12 +6,12 @@ class GC_SuppressionSystem : GameSystem
 		params: "0 inf", category: "Suppression")]
 	protected float m_fCoverTraceLength;
 	
-	[Attribute("7.5", UIWidgets.Auto,
+	[Attribute("2.5", UIWidgets.Auto,
 		"Recovery delay (seconds). Time without new suppression before suppression starts to decay.",
 		params: "0 inf", category: "Suppression")]
 	protected float m_fRecoveryDelay;
 	
-	[Attribute("0.2", UIWidgets.Auto,
+	[Attribute("0.05", UIWidgets.Auto,
 		"Recovery rate (suppression units per second). 0.2 means suppression drops by 20% per second once recovery starts.",
 		params: "0 1", category: "Suppression")]
 	protected float m_fRecoveryRate;
@@ -22,7 +22,7 @@ class GC_SuppressionSystem : GameSystem
 	protected float m_fCoverMultiplier;
 	
 	// Projectiles
-	[Attribute("10", UIWidgets.Auto,
+	[Attribute("15", UIWidgets.Auto,
 	"Flyby outer radius (meters). Suppression from a passing bullet fades to 0 at this distance (measured from player eye to closest approach).",
 	params: "0 inf", category: "Projectile")]
 	protected float m_fMaxRange;
@@ -86,7 +86,7 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("55", UIWidgets.Auto, "Impulse that counts as extreme and results in full suppression.", params: "0.001 inf", category: "Explosion")]
 	protected float m_fExplosionSuppressionFullImpulse;
 	
-	[Attribute("5", UIWidgets.Auto, "Minimum impulse required to cause suppression.", params: "0 inf", category: "Explosion")]
+	[Attribute("1.0", UIWidgets.Auto, "Minimum impulse required to cause suppression.", params: "0 inf", category: "Explosion")]
 	protected float m_fExplosionSuppressionMinimumImpulse;
 	
 	[Attribute("1.0", UIWidgets.Auto, "Controls how quickly suppression ramps from start impulse to full impulse. Higher values keep low impulses weaker for longer.", params: "0.001 inf", category: "Explosion")]
@@ -102,19 +102,19 @@ class GC_SuppressionSystem : GameSystem
 	[Attribute("1.0", UIWidgets.Auto, "General multiplier applied to final shake amount. 0 = off", params: "0 inf 0.01", category: "Explosion Screen Shake")]
 	protected float m_fExplosionScreenShakeMultiplier;
 	
-	[Attribute("15", UIWidgets.Auto, "Maximum shake amount to lerp to from explosion strength", params: "0 inf 0.01", category: "Explosion Screen Shake")]
+	[Attribute("37.5", UIWidgets.Auto, "Maximum shake amount to lerp from explosion strength", params: "0 inf 0.01", category: "Explosion Screen Shake")]
 	protected float m_fExplosionScreenShakeMaxAmount;
 	
-	[Attribute("5", UIWidgets.Auto, "Minimum explosion impulse required before screen shake starts", params: "0 inf 0", category: "Explosion Screen Shake")]
+	[Attribute("1.0", UIWidgets.Auto, "Minimum explosion impulse required before screen shake starts", params: "0 inf 0", category: "Explosion Screen Shake")]
 	protected float m_fExplosionScreenShakeMinImpulse;
 	
-	[Attribute("45", UIWidgets.Auto, "Explosion impulse that reaches full screen shake strength", params: "0 inf 0", category: "Explosion Screen Shake")]
+	[Attribute("100", UIWidgets.Auto, "Explosion impulse that reaches full screen shake strength", params: "0 inf 0", category: "Explosion Screen Shake")]
 	protected float m_fExplosionScreenShakeMaxImpulse;
 	
 	[Attribute("0.25", UIWidgets.Auto, "Maximum sustain time for explosion screen shake", params: "0 inf 0.001", category: "Explosion Screen Shake")]
 	protected float m_fExplosionScreenShakeMaxSustainTime;
 	
-	[Attribute("0.1", UIWidgets.Auto, "Maximum out time for explosion screen shake", params: "0 inf 0.001", category: "Explosion Screen Shake")]
+	[Attribute("0.2", UIWidgets.Auto, "Maximum out time for explosion screen shake", params: "0 inf 0.001", category: "Explosion Screen Shake")]
 	protected float m_fExplosionScreenShakeMaxOutTime;
 
 	//Ragdoll
@@ -166,16 +166,6 @@ class GC_SuppressionSystem : GameSystem
 			return;
 
 		pc.m_OnControlledEntityChanged.Insert(OnControlledEntityChanged);
-	}
-	
-	void Delayed()
-	{
-		IEntity player = GetGame().GetPlayerController().GetControlledEntity();
-		Physics physics = player.GetPhysics();
-		player.Update();
-		physics.SetVelocity("0 10 0");
-		player.Update();
-		physics.ApplyImpulse("0 500 0");
 	}
 
 	void OnControlledEntityChanged(IEntity from, IEntity to)

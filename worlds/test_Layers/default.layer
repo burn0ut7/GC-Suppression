@@ -1,6 +1,6 @@
 $grp Vehicle : "{0FBF8F010F81A4E5}Prefabs/Vehicles/Wheeled/LAV25/LAV25.et" {
  LAV1 {
-  coords 130.473 1 96.591
+  coords 135.24 1 92.67
  }
  LAV2 {
   coords 107.971 1 133.705

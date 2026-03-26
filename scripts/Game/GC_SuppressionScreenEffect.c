@@ -5,7 +5,7 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	params: "0 inf")]
 	protected float m_fVignetteMultiplier;
 	
-	[Attribute("0.6", UIWidgets.Auto,
+	[Attribute("0.55", UIWidgets.Auto,
 		"Vignette maximum mask (cap). 0 = off, 1 = full vignette.",
 		params: "0 1")]
 	protected float m_fVignetteMax;

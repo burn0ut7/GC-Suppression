@@ -6,7 +6,7 @@ SCR_FactionManager FactionManager_FFA1 : "{A1C54BBE72C5C696}Prefabs/MP/Managers/
 }
 TimeAndWeatherManagerEntity : "{A3BAF78F6F03315B}Prefabs/World/Game/TimeAndWeatherManager.et" {
  coords 3053.211 25.068 2601.463
- "Initial Day Time" 0
+ "Initial Day Time" 10.326
  "Internal variant transition" 0
  "Internal subvariant 0" 0
  "Internal subvariant 1" 0
