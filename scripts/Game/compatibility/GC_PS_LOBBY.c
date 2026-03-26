@@ -3,7 +3,6 @@ modded class GC_SuppressionSystem
 {
 	override void RegisterProjectile(IEntity projectile)
 	{
-		Print("GC PS_Lobby PATCH");
 		PS_PlayableControllerComponent playable = PS_PlayableControllerComponent.GetInstance();
 		if(playable.IsSpectating())
 			return;
