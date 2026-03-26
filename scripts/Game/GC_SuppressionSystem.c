@@ -32,7 +32,7 @@ class GC_SuppressionSystem : GameSystem
 		params: "0 inf", category: "Projectile")]
 	protected float m_fMinRange;
 	
-	[Attribute("0.5", UIWidgets.Auto,
+	[Attribute("1", UIWidgets.Auto,
 		"Flinch radius (meters). Triggers flinch when a bullet's closest approach is within this distance.",
 		params: "0 inf", category: "Projectile")]
 	protected float m_fFlinchRange;
@@ -42,10 +42,15 @@ class GC_SuppressionSystem : GameSystem
 		params: "0 inf", category: "Projectile")]
 	protected float m_fFlinchShakeMultiplier;
 	
-	[Attribute("0.5", UIWidgets.Auto,
+	[Attribute("1", UIWidgets.Auto,
 		"Extra flinch shake scaling from current suppression. At full suppression, shake is multiplied by (1 + this).",
 		params: "0 inf", category: "Projectile")]
 	protected float m_fFlinchShakeSuppressedMultiplier;
+	
+	[Attribute("0.33", UIWidgets.Auto,
+		"Flinch multipler applied when aimmed down sights.",
+		params: "0 inf", category: "Projectile")]
+	protected float m_fFlinchShakeADSMultiplier;
 	
 	[Attribute("2.0", UIWidgets.Auto,
 		"Mass contribution scale. Suppression mass term = ProjectileMass * this.",
@@ -437,6 +442,17 @@ class GC_SuppressionSystem : GameSystem
 			float suppressionMulti = 1.0 + m_fSuppression * m_fFlinchShakeSuppressedMultiplier;
 	
 			float magnitude = m_fFlinchShakeMultiplier * suppressionMulti;
+			
+			SCR_ChimeraCharacter player = SCR_ChimeraCharacter.Cast(GetGame().GetPlayerController().GetControlledEntity());
+			if (!player)
+				return;
+			
+			SCR_CharacterControllerComponent cc = SCR_CharacterControllerComponent.Cast(player.FindComponent(SCR_CharacterControllerComponent));
+			if (!cc)
+				return;
+			
+			if(cc.IsWeaponADS())
+				magnitude *= m_fFlinchShakeADSMultiplier;
 			
 			ScreenShake(magnitude);
 		}
