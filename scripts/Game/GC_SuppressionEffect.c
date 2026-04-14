@@ -52,12 +52,28 @@ class GC_SuppressionEffect : BaseProjectileEffect
 			return;
 		
 		IEntity shooter = instigator.GetInstigatorEntity();
-		if(shooter == chimera)
+		if (shooter == chimera)
 			return;
 		
 		GC_SuppressionSystem suppr = GC_SuppressionSystem.GetInstance();
 		if (!suppr)
 			return;
+
+		if (shooter && suppr.GetIgnoreFriendlySuppression())
+		{
+			FactionAffiliationComponent playerFac = FactionAffiliationComponent.Cast(
+				chimera.FindComponent(FactionAffiliationComponent));
+			FactionAffiliationComponent shooterFac = FactionAffiliationComponent.Cast(
+				shooter.FindComponent(FactionAffiliationComponent));
+
+			if (playerFac && shooterFac)
+			{
+				Faction pf = playerFac.GetAffiliatedFaction();
+				Faction sf = shooterFac.GetAffiliatedFaction();
+				if (pf && sf && pf == sf)
+					return;
+			}
+		}
 		
 		float distance = vector.Distance(transform[0], chimera.EyePosition());
 		if (distance > suppr.GetMaxRange())
