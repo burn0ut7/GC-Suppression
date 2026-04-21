@@ -14,6 +14,7 @@ modded class SCR_MuzzleEffectComponent
 		// 1. minimum distance (don't suppress yourself or squad members immediately next to you)
 		// 2. maximum angle (don't suppress nearby players who aren't close to your cone of fire)
 		// 3. maximum miss distance (for optimization purposes, if the shot probably passes the player at a large XZ distance, don't bother keeping track)
+		// 4. faction check - don't suppress from friendly shooters
 		
 		PlayerController pc = GetGame().GetPlayerController();
 		if (!pc)
@@ -55,11 +56,40 @@ modded class SCR_MuzzleEffectComponent
 		float t = vector.DotXZ(toPlayer, velocity);
 		if (t < 0) // technically double checking. leaving still in case above was changed.
 			return false;
-			
+
 		vector passPoint = projPos + velocity * t;
 		if (vector.DistanceXZ(playerPos, passPoint) > 100) // 100 is kind of arbitrary but should be enough
 			return false;
-		
+
+		// 4. faction check - don't suppress from friendly shooters
+		GC_SuppressionSystem suppr = GC_SuppressionSystem.GetInstance();
+		if (suppr && suppr.GetIgnoreFriendlySuppression())
+		{
+			IEntity muzzleOwner = muzzle.GetOwner();
+			if (muzzleOwner)
+			{
+				IEntity shooter = muzzleOwner.GetParent();
+				if (!shooter)
+					shooter = muzzleOwner;
+
+				if (shooter != player)
+				{
+					FactionAffiliationComponent playerFac = FactionAffiliationComponent.Cast(
+						player.FindComponent(FactionAffiliationComponent));
+					FactionAffiliationComponent shooterFac = FactionAffiliationComponent.Cast(
+						shooter.FindComponent(FactionAffiliationComponent));
+
+					if (playerFac && shooterFac)
+					{
+						Faction pf = playerFac.GetAffiliatedFaction();
+						Faction sf = shooterFac.GetAffiliatedFaction();
+						if (pf && sf && pf == sf)
+							return false;
+					}
+				}
+			}
+		}
+
 		return true;
 	}
 }

@@ -1,6 +1,9 @@
 class GC_SuppressionSystem : GameSystem
 {
 	// General
+	[Attribute("1", UIWidgets.CheckBox, "When enabled, friendly fire does not cause suppression.", category: "Suppression")]
+	protected bool m_bIgnoreFriendlySuppression;
+
 	[Attribute("5.0", UIWidgets.Auto,
 		"Cover check trace length (meters). Ray is cast from player eyes toward the bullet source direction to detect blocking cover.",
 		params: "0 inf", category: "Suppression")]
@@ -843,6 +846,11 @@ class GC_SuppressionSystem : GameSystem
 		return m_fSuppression;
 	}
 	
+	bool GetIgnoreFriendlySuppression()
+	{
+		return m_bIgnoreFriendlySuppression;
+	}
+
 	float GetMaxRange()
 	{
 		return m_fMaxRange;
