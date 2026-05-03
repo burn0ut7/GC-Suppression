@@ -487,8 +487,8 @@ class GC_SuppressionSystem : GameSystem
 		float outTime = Math.Lerp(0.0, m_fExplosionScreenShakeMaxOutTime, normalized);
 	
 		ScreenShake(amount, 0.01, sustainTime, outTime);
-		
-		PrintFormat("GC | ExplosionScreenShake: impulse:%1, amount:%2, sustainTime:%3", impulse, amount, sustainTime);
+
+		//PrintFormat("GC | ExplosionScreenShake: impulse:%1, amount:%2, sustainTime:%3", impulse, amount, sustainTime);
 		
 		return amount;
 	}
@@ -515,13 +515,6 @@ class GC_SuppressionSystem : GameSystem
 		ExplosionScreenShake(impulse * multiplier);
 
 		//ragdoll?
-		PrintFormat(
-			"GC | Explosion | explosion:%1 impulse:%2 inputMulti:%3 suppression:%4",
-			explosion,
-			impulse,
-			multiplier,
-			suppression
-		);
 	}
 	
 	//Vehicle check
@@ -874,6 +867,7 @@ class GC_SuppressionSystem : GameSystem
 	}
 	
 	//! Debug shapes, remove later
+	/*
 	protected ref array<ref Shape> m_shapes = {};
 	protected void CreateDebugCircle(vector position, int color = Color.RED, bool clear = false)
 	{
@@ -890,4 +884,5 @@ class GC_SuppressionSystem : GameSystem
 		
 		m_shapes.Insert(Shape.Create(ShapeType.LINE, color, ShapeFlags.DEFAULT, start, end));
 	}
+	*/
 }
