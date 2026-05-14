@@ -85,7 +85,7 @@ class GC_SuppressionScreenEffect : SCR_BaseScreenEffect
 	protected static float s_fChromAber = 0;
 	
 	protected const string m_sChromAberMaterialName = "{07258569ACAB792D}UI/Materials/GC_ScreenEffects_ChromAberPP.emat";
-	protected const int m_sChromAberPriority = 3;
+	protected const int m_sChromAberPriority = 4;
 
 	override void DisplayStartDraw(IEntity owner)
 	{
