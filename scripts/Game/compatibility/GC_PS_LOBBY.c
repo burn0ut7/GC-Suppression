@@ -42,7 +42,7 @@ modded class PS_PlayableControllerComponent : ScriptComponent
 {
 	override bool IsSpectating()
 	{
-		PrintFormat("GC Supp | IsSpectating:%1", m_isSpectating);
+		// PrintFormat("GC Supp | IsSpectating:%1", m_isSpectating);
 		
 		return m_isSpectating;
 	}
