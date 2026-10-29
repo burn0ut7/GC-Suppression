@@ -14,7 +14,7 @@ class GC_SuppressionSystem : GameSystem
 		params: "0 inf", category: "Suppression")]
 	protected float m_fRecoveryDelay;
 	
-	[Attribute("0.1", UIWidgets.Auto,
+	[Attribute("0.2", UIWidgets.Auto,
 		"Recovery rate (suppression units per second). 0.1 means suppression drops by 10% per second once recovery starts.",
 		params: "0 1", category: "Suppression")]
 	protected float m_fRecoveryRate;
